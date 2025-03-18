@@ -53,3 +53,22 @@ if (result) {
     std::cout << result.error().what() << std::endl;
 }
 ```
+
+## Installation
+
+To install vcpkg:
+
+```
+git submodule update --init
+./vcpkg/bootstrap-vcpkg.sh # Linux, macOS
+./vcpkg/bootstrap-vcpkg.bat # Windows
+# You may be prompted to install additional dependencies.
+```
+
+To compile the library:
+
+```
+cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j 4 # gcc, clang
+cmake --build build --config Release -j 4 # MSVC
+```

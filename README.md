@@ -45,10 +45,10 @@ and print the results as a JSON:
 
 const auto conn = sqlgen::sqlite3::connect("example.db");
 
-const auto people = sqlgen::sqlite3::read<People>(conn);
+const auto result = sqlgen::sqlite3::read<People>(conn);
 
-if (people) {
-    std::cout << rfl::json::write(*people) << std::endl;
+if (result) {
+    std::cout << rfl::json::write(*result) << std::endl;
 } else {
     std::cout << result.error().what() << std::endl;
 }

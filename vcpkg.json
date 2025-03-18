@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    {
+      "name": "reflectcpp",
+      "version>=": "0.18.0"
+    },
+    {
+      "name": "sqlite3",
+      "version>=": "3.49.1"
+    }
+  ]
+}

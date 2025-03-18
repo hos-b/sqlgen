@@ -3,7 +3,7 @@
 sqlgen is an ORM and SQL query generator for C++-20, similar to Python's [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)/[SQLModel](https://github.com/fastapi/sqlmodel) or Rust's [Diesel](https://github.com/diesel-rs/diesel).
 
 Much like SQLModel is closely integrated with [pydantic](https://github.com/pydantic/pydantic),
-sqlgen is closely integrated with our sister project [reflect-cpp](https://github.com/getml/reflect-cpp). This allows you to construct highly efficient data pipelines.
+sqlgen is closely integrated with our sister project [reflect-cpp](https://github.com/getml/reflect-cpp). This allows you to construct very reliable and highly efficient data pipelines.
 
 ## Simple example
 
@@ -29,7 +29,7 @@ const auto conn = sqlgen::sqlite::connect("example.db");
 // Will automatically create a table called 'People'
 // with the columns 'first_name', 'last_name' and 'age', 
 // if necessary.
-const auto result = sqlgen::write(conn, people);
+const auto result = sqlgen::sqlite::write(conn, people);
 
 if (!result) {
     std::cout << result.error().what() << std::endl;
@@ -45,7 +45,7 @@ and print the results as a JSON:
 
 const auto conn = sqlgen::sqlite::connect("example.db");
 
-const auto people = sqlgen::read<People>(conn);
+const auto people = sqlgen::sqlite::read<People>(conn);
 
 if (people) {
     std::cout << rfl::json::write(*people) << std::endl;

@@ -29,7 +29,7 @@ const auto conn = sqlgen::sqlite3::connect("example.db");
 // Will automatically create a table called 'People'
 // with the columns 'first_name', 'last_name' and 'age', 
 // if necessary.
-const auto result = sqlgen::sqlite3::write(conn, people);
+const auto result = sqlgen::write(conn, people);
 
 if (!result) {
     std::cout << result.error().what() << std::endl;
@@ -45,7 +45,8 @@ and print the results as a JSON:
 
 const auto conn = sqlgen::sqlite3::connect("example.db");
 
-const auto result = sqlgen::sqlite3::read<People>(conn);
+const sqlgen::Result<std::vector<People>> result = 
+    sqlgen::read<std::vector<People>>(conn);
 
 if (result) {
     std::cout << rfl::json::write(*result) << std::endl;

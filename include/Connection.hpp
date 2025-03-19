@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Result.hpp"
+#include "dynamic/CreateTable.hpp"
 #include "dynamic/Insert.hpp"
 #include "dynamic/SelectFrom.hpp"
 
@@ -13,6 +14,10 @@ namespace sqlgen {
 /// Abstract base class to be implemented by the different
 /// database connections.
 struct Connection {
+  /// Executes a statement.
+  /// TODO: Abstract away the different statements using a lambda function.
+  virtual Result<Nothing> execute(const CreateTable& _stmt) = 0;
+
   /// Reads the results of a SelectFrom statement.
   virtual Result<std::vector<std::vector<std::string>>> read(
       const dynamic::SelectFrom& _query) = 0;

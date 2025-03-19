@@ -1,5 +1,5 @@
-#ifndef SQLGEN_DYNAMIC_SELECTFROM_HPP_
-#define SQLGEN_DYNAMIC_SELECTFROM_HPP_
+#ifndef SQLGEN_DYNAMIC_CREATETABLE_HPP_
+#define SQLGEN_DYNAMIC_CREATETABLE_HPP_
 
 #include <string>
 #include <vector>
@@ -9,9 +9,11 @@
 
 namespace sqlgen::dynamic {
 
-struct SelectFrom {
+struct CreateTable {
   Table table;
   std::vector<Column> columns;
+  bool if_not_exists = true;
+  // TODO: Constraints
 };
 
 }  // namespace sqlgen::dynamic

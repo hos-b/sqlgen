@@ -12,20 +12,20 @@ namespace sqlgen::dynamic {
 
 SelectFrom select(const std::string& _table,
                   const std::vector<std::string>& _columns) {
-    std::vector<Column> columns;
-    for (const auto& name : _columns) {
-        columns.emplace_back(Column{.name = name});
-    }
-    return SelectFrom{.table = Table{.name = _table}, .columns = columns};
+  std::vector<Column> columns;
+  for (const auto& name : _columns) {
+    columns.emplace_back(Column{.name = name});
+  }
+  return SelectFrom{.table = Table{.name = _table}, .columns = columns};
 }
 
 SelectFrom select(const std::string& _schema, const std::string& _table,
                   const std::vector<std::string>& _columns) {
-    std::vector<Column> columns;
-    for (const auto& name : _columns) {
-        columns.emplace_back(Column{.name = name});
-    }
-    return SelectFrom{.table = Table{.name = _table, .schema = _schema},
-                      .columns = columns};
+  std::vector<Column> columns;
+  for (const auto& name : _columns) {
+    columns.emplace_back(Column{.name = name});
+  }
+  return SelectFrom{.table = Table{.name = _table, .schema = _schema},
+                    .columns = columns};
 }
 }  // namespace sqlgen::dynamic

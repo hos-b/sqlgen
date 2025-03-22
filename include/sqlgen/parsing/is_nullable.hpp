@@ -33,6 +33,9 @@ consteval bool is_nullable() {
   }
 }
 
+template <class T>
+constexpr bool is_nullable_v = is_nullable<std::remove_cvref_t<T>>();
+
 }  // namespace sqlgen::parsing
 
 #endif

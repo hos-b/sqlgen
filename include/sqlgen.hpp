@@ -1,0 +1,9 @@
+#ifndef SQLGEN_HPP_
+#define SQLGEN_HPP_
+
+#include "sqlgen/Connection.hpp"
+#include "sqlgen/Iterator.hpp"
+#include "sqlgen/Ref.hpp"
+#include "sqlgen/Result.hpp"
+
+#endif

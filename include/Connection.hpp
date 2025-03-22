@@ -27,12 +27,15 @@ struct Connection {
   /// Starts the write operation.
   virtual Result<Nothing> start_write(const dynamic::Insert& _stmt) = 0;
 
-  /// Ends the write operation.
+  /// Ends the write operation and thus commits the results.
   virtual Result<Nothing> end_write() = 0;
 
   /// Writes data into a table. Each vector in data MUST have the same length as
   /// _stmt.columns.
-  /// You MUST call start_write() first.
+  /// You MUST call .start_write(...) first and call .end_write() after all
+  /// the data has been written.
+  /// You CAN write the data in chunks, meaning you can call .write(...) more
+  /// than once between .start_write(...) and .end_write().
   virtual Result<Nothing> write(
       const std::vector<std::vector<std::optional<std::string>>>& _data) = 0;
 };

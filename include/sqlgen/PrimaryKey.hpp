@@ -9,7 +9,8 @@ template <class T>
 struct PrimaryKey {
   using ReflectionType = T;
 
-  static_assert(!is_nullable_v<T>, "A primary key cannot be nullable.");
+  static_assert(!parsing::is_nullable_v<T>,
+                "A primary key cannot be nullable.");
 
   PrimaryKey() : value_(0) {}
 

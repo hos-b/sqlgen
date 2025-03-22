@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "Iterator.hpp"
 #include "Result.hpp"
 #include "dynamic/CreateTable.hpp"
 #include "dynamic/Insert.hpp"
@@ -15,12 +16,11 @@ namespace sqlgen {
 /// database connections.
 struct Connection {
   /// Executes a statement.
-  /// TODO: Abstract away the different statements using a lambda function.
+  /// TODO: Abstract away the different statements using rfl::TaggedUnion.
   virtual Result<Nothing> execute(const CreateTable& _stmt) = 0;
 
   /// Reads the results of a SelectFrom statement.
-  virtual Result<std::vector<std::vector<std::string>>> read(
-      const dynamic::SelectFrom& _query) = 0;
+  virtual Result<Iterator> read(const dynamic::SelectFrom& _query) = 0;
 
   /// Writes data into a table. Each vector in data MUST have the same length as
   /// _stmt.columns.

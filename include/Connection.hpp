@@ -17,7 +17,11 @@ namespace sqlgen {
 /// Abstract base class to be implemented by the different
 /// database connections.
 struct Connection {
-  /// Executes a statement.
+  /// Commits a statement,
+  virtual Result<Nothing> commit() = 0;
+
+  /// Executes a statement. Note that in order for the statement to take effect,
+  /// you must call .commit() afterwards.
   /// TODO: Abstract away the different statements using rfl::TaggedUnion.
   virtual Result<Nothing> execute(const CreateTable& _stmt) = 0;
 

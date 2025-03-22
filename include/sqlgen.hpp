@@ -3,6 +3,7 @@
 
 #include "sqlgen/Connection.hpp"
 #include "sqlgen/Iterator.hpp"
+#include "sqlgen/Literal.hpp"
 #include "sqlgen/Ref.hpp"
 #include "sqlgen/Result.hpp"
 

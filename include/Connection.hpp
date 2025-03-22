@@ -1,6 +1,7 @@
 #ifndef SQLGEN_CONNECTION_HPP_
 #define SQLGEN_CONNECTION_HPP_
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -27,7 +28,7 @@ struct Connection {
   /// _stmt.columns.
   virtual Result<Nothing> write(
       const dynamic::Insert& _stmt,
-      const std::vector<std::vector<std::string>>& _data) = 0;
+      const std::vector<std::vector<std::optional<std::string>>>& _data) = 0;
 };
 
 }  // namespace sqlgen

@@ -1,6 +1,7 @@
 #ifndef SQLGEN_ITERATOR_HPP_
 #define SQLGEN_ITERATOR_HPP_
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,7 +17,7 @@ struct Iterator {
   /// Returns the next batch of rows.
   /// If _batch_size is greater than the number of rows left, returns all
   /// of the rows left.
-  virtual Result<std::vector<std::vector<std::string>>> next(
+  virtual Result<std::vector<std::vector<std::optional<std::string>>>> next(
       const size_t _batch_size) = 0;
 };
 

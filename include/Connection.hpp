@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Iterator.hpp"
+#include "Ref.hpp"
 #include "Result.hpp"
 #include "dynamic/CreateTable.hpp"
 #include "dynamic/Insert.hpp"
@@ -20,7 +21,7 @@ struct Connection {
   virtual Result<Nothing> execute(const CreateTable& _stmt) = 0;
 
   /// Reads the results of a SelectFrom statement.
-  virtual Result<Iterator> read(const dynamic::SelectFrom& _query) = 0;
+  virtual Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) = 0;
 
   /// Writes data into a table. Each vector in data MUST have the same length as
   /// _stmt.columns.

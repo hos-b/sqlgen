@@ -24,10 +24,16 @@ struct Connection {
   /// Reads the results of a SelectFrom statement.
   virtual Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) = 0;
 
+  /// Starts the write operation.
+  virtual Result<Nothing> start_write(const dynamic::Insert& _stmt) = 0;
+
+  /// Ends the write operation.
+  virtual Result<Nothing> end_write() = 0;
+
   /// Writes data into a table. Each vector in data MUST have the same length as
   /// _stmt.columns.
+  /// You MUST call start_write() first.
   virtual Result<Nothing> write(
-      const dynamic::Insert& _stmt,
       const std::vector<std::vector<std::optional<std::string>>>& _data) = 0;
 };
 

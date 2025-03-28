@@ -11,51 +11,85 @@
 #include "../dynamic/CreateTable.hpp"
 #include "../dynamic/Table.hpp"
 #include "../dynamic/Type.hpp"
+#include "has_reflection_method.hpp"
+#include "is_nullable.hpp"
+#include "is_primary_key.hpp"
 
 namespace sqlgen::parsing {
 
 namespace internal {
 
-template <class FieldType>
-std::string to_name() {
-  using Name = typename FieldType::Name;
+template <class Name>
+std::string to_colname() {
   return Name().str();
 }
 
-template <class FieldType>
+template <class Type>
 dynamic::Type to_type() {
-  using T = std::remove_cvref_t<typename FieldType::Type>;
-  if constexpr (std::is_same_v<T, bool>) {
+  using T = std::remove_cvref_t<Type>;
+  if constexpr (is_primary_key_v<T>) {
+    return to_type<typename T::ReflectionType>().visit(
+        [](auto _t) -> dynamic::Type {
+          _t.properties.primary = true;
+          return _t;
+        });
+
+  } else if constexpr (is_nullable_v<T>) {
+    const auto set_nullable = [](auto _t) -> dynamic::Type {
+      _t.properties.nullable = true;
+      return _t;
+    };
+    if constexpr (is_ptr<T>::value) {
+      return to_type<typename T::element_type>().visit(set_nullable);
+    } else {
+      return to_type<typename T::value_type>().visit(set_nullable);
+    }
+
+  } else if constexpr (has_reflection_method_v<T>) {
+    return to_type<typename Type::ReflectionType>();
+
+  } else if constexpr (std::is_same_v<T, bool>) {
     return types::Boolean{};
+
   } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
     if constexpr (sizeof(T) == 1) {
       return types::Int8{};
+
     } else if constexpr (sizeof(T) == 2) {
       return types::Int16{};
+
     } else if constexpr (sizeof(T) == 4) {
       return types::Int32{};
+
     } else if constexpr (sizeof(T) == 8) {
       return types::Int64{};
+
     } else {
       static_assert(rfl::always_false_v<T>, "Unsupported signed integer.");
     }
   } else if constexpr (std::is_integral_v<T> && !std::is_signed_v<T>) {
     if constexpr (sizeof(T) == 1) {
       return types::UInt8{};
+
     } else if constexpr (sizeof(T) == 2) {
       return types::UInt16{};
+
     } else if constexpr (sizeof(T) == 4) {
       return types::UInt32{};
+
     } else if constexpr (sizeof(T) == 8) {
       return types::UInt64{};
+
     } else {
       static_assert(rfl::always_false_v<T>, "Unsupported unsigned integer.");
     }
   } else if constexpr (std::is_floating_point_v<T>) {
     if constexpr (sizeof(T) == 4) {
       return types::Float32{};
+
     } else if constexpr (sizeof(T) == 8) {
       return types::Float64{};
+
     } else {
       static_assert(rfl::always_false_v<T>,
                     "Unsupported floating point value.");
@@ -67,8 +101,8 @@ dynamic::Type to_type() {
 
 template <class FieldType>
 dynamic::Column to_column() {
-  return dynamic::Column{.name = to_name<FieldType>(),
-                         .type = to_type<FieldType>()};
+  return dynamic::Column{.name = to_colname<typename FieldType::Name>(),
+                         .type = to_type<typename FieldType::Type>()};
 }
 
 template <class Fields, int... _is>

@@ -24,7 +24,45 @@ std::string to_name() {
 
 template <class FieldType>
 dynamic::Type to_type() {
-  // TODO
+  using T = std::remove_cvref_t<typename FieldType::Type>;
+  if constexpr (std::is_same_v<T, bool>) {
+    return types::Boolean{};
+  } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
+    if constexpr (sizeof(T) == 1) {
+      return types::Int8{};
+    } else if constexpr (sizeof(T) == 2) {
+      return types::Int16{};
+    } else if constexpr (sizeof(T) == 4) {
+      return types::Int32{};
+    } else if constexpr (sizeof(T) == 8) {
+      return types::Int64{};
+    } else {
+      static_assert(rfl::always_false_v<T>, "Unsupported signed integer.");
+    }
+  } else if constexpr (std::is_integral_v<T> && !std::is_signed_v<T>) {
+    if constexpr (sizeof(T) == 1) {
+      return types::UInt8{};
+    } else if constexpr (sizeof(T) == 2) {
+      return types::UInt16{};
+    } else if constexpr (sizeof(T) == 4) {
+      return types::UInt32{};
+    } else if constexpr (sizeof(T) == 8) {
+      return types::UInt64{};
+    } else {
+      static_assert(rfl::always_false_v<T>, "Unsupported unsigned integer.");
+    }
+  } else if constexpr (std::is_floating_point_v<T>) {
+    if constexpr (sizeof(T) == 4) {
+      return types::Float32{};
+    } else if constexpr (sizeof(T) == 8) {
+      return types::Float64{};
+    } else {
+      static_assert(rfl::always_false_v<T>,
+                    "Unsupported floating point value.");
+    }
+  } else if constexpr (std::is_same_v<T, std::string>) {
+    return types::Text{};
+  }
 }
 
 template <class FieldType>

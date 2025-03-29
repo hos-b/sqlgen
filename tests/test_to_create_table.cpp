@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <rfl/json.hpp>
 #include <sqlgen.hpp>
 #include <sqlgen/parsing/to_create_table.hpp>
 
@@ -15,25 +16,11 @@ struct TestTable {
 TEST(general, test_to_create_table) {
   const auto create_table_stmt = sqlgen::parsing::to_create_table<TestTable>();
 
-  const auto get_properties = [](const auto& _t) { return _t.properties; };
+  const std::string expected =
+      R"({"table":{"alias":"","name":"TestTable","schema":""},"columns":[{"alias":"","name":"field1","type":{"type":"Text","properties":{"primary":false,"nullable":false}}},{"alias":"","name":"field2","type":{"type":"Int32","properties":{"primary":false,"nullable":false}}},{"alias":"","name":"id","type":{"type":"UInt32","properties":{"primary":true,"nullable":false}}},{"alias":"","name":"nullable","type":{"type":"Text","properties":{"primary":false,"nullable":true}}}],"if_not_exists":true})";
 
-  EXPECT_EQ(create_table_stmt.table.name, "TestTable");
-  EXPECT_EQ(create_table_stmt.table.schema, "");
+  const auto json_str = rfl::json::write(create_table_stmt);
 
-  EXPECT_EQ(create_table_stmt.columns.size(), 4);
-
-  EXPECT_EQ(create_table_stmt.columns.at(0).name, "field1");
-  EXPECT_EQ(create_table_stmt.columns.at(1).name, "field2");
-  EXPECT_EQ(create_table_stmt.columns.at(2).name, "id");
-  EXPECT_EQ(create_table_stmt.columns.at(3).name, "nullable");
-
-  EXPECT_EQ(create_table_stmt.columns.at(0).type.visit(get_properties).primary,
-            false);
-  EXPECT_EQ(create_table_stmt.columns.at(0).type.visit(get_properties).nullable,
-            false);
-  EXPECT_EQ(create_table_stmt.columns.at(2).type.visit(get_properties).primary,
-            true);
-  EXPECT_EQ(create_table_stmt.columns.at(3).type.visit(get_properties).nullable,
-            true);
+  EXPECT_EQ(json_str, expected);
 }
 }  // namespace test_to_create_table

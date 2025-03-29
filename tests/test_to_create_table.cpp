@@ -3,19 +3,22 @@
 #include <sqlgen.hpp>
 #include <sqlgen/parsing/to_create_table.hpp>
 
-TEST(general, test_to_create_table) {
-  struct TestTable {
-    std::string field1;
-    int32_t field2;
-    sqlgen::PrimaryKey<uint32_t> id;
-    std::optional<std::string> nullable;
-  };
+namespace test_to_create_table {
 
+struct TestTable {
+  std::string field1;
+  int32_t field2;
+  sqlgen::PrimaryKey<uint32_t> id;
+  std::optional<std::string> nullable;
+};
+
+TEST(general, test_to_create_table) {
   const auto create_table_stmt = sqlgen::parsing::to_create_table<TestTable>();
 
   const auto get_properties = [](const auto& _t) { return _t.properties; };
 
   EXPECT_EQ(create_table_stmt.table.name, "TestTable");
+  EXPECT_EQ(create_table_stmt.table.schema, "");
 
   EXPECT_EQ(create_table_stmt.columns.size(), 4);
 
@@ -33,3 +36,4 @@ TEST(general, test_to_create_table) {
   EXPECT_EQ(create_table_stmt.columns.at(3).type.visit(get_properties).nullable,
             true);
 }
+}  // namespace test_to_create_table

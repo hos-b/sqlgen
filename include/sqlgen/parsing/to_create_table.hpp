@@ -12,6 +12,7 @@
 #include "../dynamic/Table.hpp"
 #include "../dynamic/Type.hpp"
 #include "../dynamic/types.hpp"
+#include "get_schema.hpp"
 #include "get_tablename.hpp"
 #include "has_reflection_method.hpp"
 #include "is_nullable.hpp"
@@ -122,7 +123,8 @@ dynamic::CreateTable to_create_table() {
   using NamedTupleType = rfl::named_tuple_t<std::remove_cvref_t<T>>;
   using Fields = typename NamedTupleType::Fields;
   return dynamic::CreateTable{
-      .table = dynamic::Table{.name = get_tablename<T>()},
+      .table =
+          dynamic::Table{.name = get_tablename<T>(), .schema = get_schema<T>()},
       .columns = internal::make_columns<Fields>(
           std::make_integer_sequence<int, rfl::tuple_size_v<Fields>>()),
       .if_not_exists = true};

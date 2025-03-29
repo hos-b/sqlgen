@@ -25,7 +25,7 @@ std::string get_tablename() noexcept {
   using Type = std::remove_cvref_t<T>;
   if constexpr (has_tablename<Type>) {
     using LiteralType = typename Type::tablename;
-    return internal::remove_namespaces(LiteralType().str());
+    return LiteralType().str();
   } else {
     return internal::remove_namespaces(rfl::type_name_t<Type>().str());
   }

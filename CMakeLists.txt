@@ -51,6 +51,8 @@ target_include_directories(
 
 find_package(reflectcpp CONFIG REQUIRED)
 
+target_link_libraries(sqlgen PUBLIC reflectcpp::reflectcpp)
+
 set_target_properties(sqlgen PROPERTIES LINKER_LANGUAGE CXX)
 target_sources(sqlgen PRIVATE ${SQLGEN_SOURCES})
 

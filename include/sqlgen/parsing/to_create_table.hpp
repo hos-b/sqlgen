@@ -11,6 +11,7 @@
 #include "../dynamic/CreateTable.hpp"
 #include "../dynamic/Table.hpp"
 #include "../dynamic/Type.hpp"
+#include "../dynamic/types.hpp"
 #include "get_tablename.hpp"
 #include "has_reflection_method.hpp"
 #include "is_nullable.hpp"
@@ -46,57 +47,57 @@ dynamic::Type to_type() {
       return to_type<typename T::value_type>().visit(set_nullable);
     }
 
-  } else if constexpr (has_reflection_method_v<T>) {
+  } else if constexpr (has_reflection_method<T>) {
     return to_type<typename Type::ReflectionType>();
 
   } else if constexpr (std::is_same_v<T, bool>) {
-    return types::Boolean{};
+    return dynamic::types::Boolean{};
 
   } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
     if constexpr (sizeof(T) == 1) {
-      return types::Int8{};
+      return dynamic::types::Int8{};
 
     } else if constexpr (sizeof(T) == 2) {
-      return types::Int16{};
+      return dynamic::types::Int16{};
 
     } else if constexpr (sizeof(T) == 4) {
-      return types::Int32{};
+      return dynamic::types::Int32{};
 
     } else if constexpr (sizeof(T) == 8) {
-      return types::Int64{};
+      return dynamic::types::Int64{};
 
     } else {
       static_assert(rfl::always_false_v<T>, "Unsupported signed integer.");
     }
   } else if constexpr (std::is_integral_v<T> && !std::is_signed_v<T>) {
     if constexpr (sizeof(T) == 1) {
-      return types::UInt8{};
+      return dynamic::types::UInt8{};
 
     } else if constexpr (sizeof(T) == 2) {
-      return types::UInt16{};
+      return dynamic::types::UInt16{};
 
     } else if constexpr (sizeof(T) == 4) {
-      return types::UInt32{};
+      return dynamic::types::UInt32{};
 
     } else if constexpr (sizeof(T) == 8) {
-      return types::UInt64{};
+      return dynamic::types::UInt64{};
 
     } else {
       static_assert(rfl::always_false_v<T>, "Unsupported unsigned integer.");
     }
   } else if constexpr (std::is_floating_point_v<T>) {
     if constexpr (sizeof(T) == 4) {
-      return types::Float32{};
+      return dynamic::types::Float32{};
 
     } else if constexpr (sizeof(T) == 8) {
-      return types::Float64{};
+      return dynamic::types::Float64{};
 
     } else {
       static_assert(rfl::always_false_v<T>,
                     "Unsupported floating point value.");
     }
   } else if constexpr (std::is_same_v<T, std::string>) {
-    return types::Text{};
+    return dynamic::types::Text{};
   }
 }
 
@@ -118,12 +119,12 @@ template <class T>
   requires std::is_class_v<std::remove_cvref_t<T>> &&
            std::is_aggregate_v<std::remove_cvref_t<T>>
 dynamic::CreateTable to_create_table() {
-  using NamedTupleType = rfl::name_tuple_t<std::remove_cvref_t<T>>;
+  using NamedTupleType = rfl::named_tuple_t<std::remove_cvref_t<T>>;
   using Fields = typename NamedTupleType::Fields;
   return dynamic::CreateTable{
       .table = dynamic::Table{.name = get_tablename<T>()},
       .columns = internal::make_columns<Fields>(
-          std::make_integer_sequence<int, rfl::tuple_size_v<Fields>>),
+          std::make_integer_sequence<int, rfl::tuple_size_v<Fields>>()),
       .if_not_exists = true};
 }
 

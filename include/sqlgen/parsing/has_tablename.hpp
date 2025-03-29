@@ -7,7 +7,7 @@ namespace sqlgen::parsing {
 
 template <typename T>
 concept has_tablename = requires() {
-  { typename T::Tablename() } -> std::same_as<typename T::Tablename>;
+  { typename T::tablename() } -> std::same_as<typename T::tablename>;
 };
 
 }  // namespace sqlgen::parsing

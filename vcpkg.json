@@ -1,6 +1,10 @@
 {
   "dependencies": [
     {
+      "name": "gtest",
+      "version>=": "1.14.0"
+    },
+    {
       "name": "reflectcpp",
       "version>=": "0.18.0"
     },

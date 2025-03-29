@@ -44,6 +44,22 @@ struct Int64 {
   Properties properties;
 };
 
+struct UInt8 {
+  Properties properties;
+};
+
+struct UInt16 {
+  Properties properties;
+};
+
+struct UInt32 {
+  Properties properties;
+};
+
+struct UInt64 {
+  Properties properties;
+};
+
 struct Text {
   Properties properties;
 };

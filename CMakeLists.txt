@@ -5,9 +5,13 @@ option(SQLGEN_BUILD_SHARED "Build shared library" ${BUILD_SHARED_LIBS})
 option(SQLGEN_SQLITE3 "Enable sqlite3 support" ON) # enabled by default
 
 #option(SQLGEN_BUILD_BENCHMARKS "Build benchmarks" OFF)
-#option(SQLGEN_BUILD_TESTS "Build tests" OFF)
+option(SQLGEN_BUILD_TESTS "Build tests" OFF)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 20)
+endif()
+
 
 set(SQLGEN_USE_VCPKG_DEFAULT ON)
 

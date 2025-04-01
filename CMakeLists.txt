@@ -12,12 +12,7 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
 
-
 set(SQLGEN_USE_VCPKG_DEFAULT ON)
-
-if(SQLGEN_BUILD_BENCHMARKS)
-    # TODO
-endif()
 
 option(SQLGEN_USE_VCPKG "Use VCPKG to download and build dependencies" ${SQLGEN_USE_VCPKG_DEFAULT})
 
@@ -48,6 +43,14 @@ target_include_directories(
     sqlgen PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
+
+if (SQLGEN_SQLITE3)
+    list(APPEND SQLGEN_SOURCES src/sqlgen_sqlite.cpp)
+    if (NOT TARGET unofficial-sqlite3)
+        find_package(unofficial-sqlite3 CONFIG REQUIRED)
+    endif()
+    target_link_libraries(sqlgen PUBLIC unofficial::sqlite3::sqlite3)
+endif()
 
 find_package(reflectcpp CONFIG REQUIRED)
 

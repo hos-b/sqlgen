@@ -8,9 +8,9 @@
 #include "Iterator.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
-#include "dynamic/CreateTable.hpp"
 #include "dynamic/Insert.hpp"
 #include "dynamic/SelectFrom.hpp"
+#include "dynamic/Statement.hpp"
 
 namespace sqlgen {
 
@@ -22,8 +22,7 @@ struct Connection {
 
   /// Executes a statement. Note that in order for the statement to take effect,
   /// you must call .commit() afterwards.
-  /// TODO: Abstract away the different statements using rfl::TaggedUnion.
-  virtual Result<Nothing> execute(const dynamic::CreateTable& _stmt) = 0;
+  virtual Result<Nothing> execute(const dynamic::Statement& _stmt) = 0;
 
   /// Reads the results of a SelectFrom statement.
   virtual Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) = 0;

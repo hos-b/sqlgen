@@ -1,6 +1,7 @@
 #ifndef SQLGEN_PARSING_GET_SCHEMA_HPP_
 #define SQLGEN_PARSING_GET_SCHEMA_HPP_
 
+#include <optional>
 #include <rfl.hpp>
 #include <type_traits>
 
@@ -9,13 +10,13 @@
 namespace sqlgen::parsing {
 
 template <class T>
-std::string get_schema() noexcept {
+std::optional<std::string> get_schema() noexcept {
   using Type = std::remove_cvref_t<T>;
   if constexpr (has_schema<Type>) {
     using LiteralType = typename Type::schema;
     return LiteralType().str();
   } else {
-    return "";
+    return std::nullopt;
   }
 }
 

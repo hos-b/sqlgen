@@ -7,7 +7,7 @@ sqlgen is closely integrated with our sister project [reflect-cpp](https://githu
 
 ## Simple example
 
-Here is how you create a simple sqlite3 database
+Here is how you create a simple sqlite database
 and insert some data:
 
 ```cpp
@@ -24,7 +24,7 @@ const auto people = std::vector<People>({
            .last_name = "Simpson",
            .age = 45}});
 
-const auto conn = sqlgen::sqlite3::connect("example.db");
+const auto conn = sqlgen::sqlite::connect("example.db");
 
 // Will automatically create a table called 'People'
 // with the columns 'first_name', 'last_name' and 'age', 
@@ -43,7 +43,7 @@ and print the results as a JSON:
 #include <rfl/json.hpp> // reflect-cpp
 #include <sqlgen/sqlite.hpp>
 
-const auto conn = sqlgen::sqlite3::connect("example.db");
+const auto conn = sqlgen::sqlite::connect("example.db");
 
 const sqlgen::Result<std::vector<People>> result = 
     sqlgen::read<std::vector<People>>(conn);

@@ -22,10 +22,13 @@ struct Connection {
 
   /// Executes a statement. Note that in order for the statement to take effect,
   /// you must call .commit() afterwards.
-  virtual Result<Nothing> execute(const dynamic::Statement& _stmt) = 0;
+  virtual Result<Nothing> execute(const std::string& _sql) = 0;
 
   /// Reads the results of a SelectFrom statement.
   virtual Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) = 0;
+
+  /// Transpiles a statement to a particular SQL dialect.
+  virtual std::string to_sql(const dynamic::Statement& _stmt) = 0;
 
   /// Starts the write operation.
   virtual Result<Nothing> start_write(const dynamic::Insert& _stmt) = 0;

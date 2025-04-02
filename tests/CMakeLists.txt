@@ -22,3 +22,7 @@ target_link_libraries(
 
 find_package(GTest)
 gtest_discover_tests(sqlgen-tests)
+
+if(SQLGEN_SQLITE3)
+    add_subdirectory(sqlite)
+endif()

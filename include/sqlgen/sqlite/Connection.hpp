@@ -1,5 +1,5 @@
-#ifndef SQLGEN_SQLITE3_CONNECTION_HPP_
-#define SQLGEN_SQLITE3_CONNECTION_HPP_
+#ifndef SQLGEN_SQLITE_CONNECTION_HPP_
+#define SQLGEN_SQLITE_CONNECTION_HPP_
 
 #include <sqlite3.h>
 
@@ -11,6 +11,7 @@
 #include "../Connection.hpp"
 #include "../Ref.hpp"
 #include "../Result.hpp"
+#include "../dynamic/Column.hpp"
 #include "../dynamic/Statement.hpp"
 
 namespace sqlgen::sqlite {
@@ -30,11 +31,9 @@ class Connection : public sqlgen::Connection {
 
   ~Connection();
 
-  Result<Nothing> commit() final { return exec("COMMIT;"); }
+  Result<Nothing> commit() final { return execute("COMMIT;"); }
 
-  Result<Nothing> execute(const dynamic::Statement& _stmt) final {
-    return exec(to_sql(_stmt));
-  }
+  Result<Nothing> execute(const std::string& _sql) noexcept final;
 
   Connection& operator=(const Connection& _other) = delete;
 
@@ -43,6 +42,8 @@ class Connection : public sqlgen::Connection {
   Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) final {
     return error("TODO");
   }
+
+  std::string to_sql(const dynamic::Statement& _stmt) noexcept final;
 
   Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
     return error("TODO");
@@ -56,17 +57,21 @@ class Connection : public sqlgen::Connection {
   }
 
  private:
+  /// Transforms a dynamic::Column to an SQL string that defines the column in a
+  /// CREATE TABLE statement.
+  std::string column_to_sql_definition(const dynamic::Column& _col) noexcept;
+
   /// Transforms a CreateTable Statement to an SQL string.
   std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 
-  /// Wrapper around sqlite3_exec.
-  Result<Nothing> exec(const std::string& _sql) noexcept;
-
-  /// Transforms a Statement to an SQL string.
-  std::string to_sql(const dynamic::Statement& _stmt) noexcept;
-
   /// Generates the underlying connection.
   static sqlite3* make_conn(const std::string& _fname);
+
+  /// Expresses the properies as SQL.
+  std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
+
+  /// Expresses the type as SQL.
+  std::string type_to_sql(const dynamic::Type& _type) noexcept;
 
  private:
   /// The underlying sqlite3 connection.

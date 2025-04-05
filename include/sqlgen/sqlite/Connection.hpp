@@ -17,27 +17,23 @@
 namespace sqlgen::sqlite {
 
 class Connection : public sqlgen::Connection {
+  using ConnPtr = std::unique_ptr<sqlite3, decltype(&sqlite3_close)>;
+
  public:
   Connection(const std::string& _fname) : conn_(make_conn(_fname)) {}
 
   Connection(const Connection& _other) = delete;
 
-  Connection(Connection&& _other) : conn_(_other.conn_) {
-    _other.conn_ = nullptr;
-  }
-
   static rfl::Result<Ref<sqlgen::Connection>> make(
       const std::string& _fname) noexcept;
 
-  ~Connection();
+  ~Connection() = default;
 
   Result<Nothing> commit() final { return execute("COMMIT;"); }
 
   Result<Nothing> execute(const std::string& _sql) noexcept final;
 
   Connection& operator=(const Connection& _other) = delete;
-
-  Connection& operator=(Connection&& _other);
 
   Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) final {
     return error("TODO");
@@ -68,7 +64,7 @@ class Connection : public sqlgen::Connection {
   std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept;
 
   /// Generates the underlying connection.
-  static sqlite3* make_conn(const std::string& _fname);
+  static ConnPtr make_conn(const std::string& _fname);
 
   /// Expresses the properies as SQL.
   std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
@@ -78,7 +74,7 @@ class Connection : public sqlgen::Connection {
 
  private:
   /// The underlying sqlite3 connection.
-  sqlite3* conn_;
+  ConnPtr conn_;
 };
 
 }  // namespace sqlgen::sqlite

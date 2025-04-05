@@ -9,12 +9,6 @@
 
 namespace sqlgen::sqlite {
 
-Connection::~Connection() {
-  if (conn_) {
-    sqlite3_close(conn_);
-  }
-}
-
 std::string Connection::column_to_sql_definition(
     const dynamic::Column& _col) noexcept {
   return "\"" + _col.name + "\"" + " " + type_to_sql(_col.type) +
@@ -59,7 +53,7 @@ rfl::Result<Ref<sqlgen::Connection>> Connection::make(
 
 Result<Nothing> Connection::execute(const std::string& _sql) noexcept {
   char* errmsg = nullptr;
-  sqlite3_exec(conn_, _sql.c_str(), nullptr, nullptr, &errmsg);
+  sqlite3_exec(conn_.get(), _sql.c_str(), nullptr, nullptr, &errmsg);
   if (errmsg) {
     const auto err = error(errmsg);
     sqlite3_free(errmsg);
@@ -100,30 +94,20 @@ std::string Connection::insert_to_sql(const dynamic::Insert& _stmt) noexcept {
   return stream.str();
 }
 
-sqlite3* Connection::make_conn(const std::string& _fname) {
+typename Connection::ConnPtr Connection::make_conn(const std::string& _fname) {
   sqlite3* conn = nullptr;
   const auto err = sqlite3_open(_fname.c_str(), &conn);
   if (err) {
     throw std::runtime_error("Can't open database: " +
                              std::string(sqlite3_errmsg(conn)));
   }
-  return conn;
+  return ConnPtr(conn, &sqlite3_close);
 }
 
 std::string Connection::properties_to_sql(
     const dynamic::types::Properties& _p) noexcept {
   return std::string(_p.primary ? " PRIMARY KEY" : "") +
          std::string(_p.nullable ? "" : " NOT NULL");
-}
-
-Connection& Connection::operator=(Connection&& _other) {
-  if (this == &_other) {
-    return *this;
-  }
-  sqlite3_close(conn_);
-  conn_ = _other.conn_;
-  _other.conn_ = nullptr;
-  return *this;
 }
 
 std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {

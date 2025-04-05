@@ -64,6 +64,9 @@ class Connection : public sqlgen::Connection {
   /// Transforms a CreateTable Statement to an SQL string.
   std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 
+  /// Transforms an Insert Statement to an SQL string.
+  std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept;
+
   /// Generates the underlying connection.
   static sqlite3* make_conn(const std::string& _fname);
 

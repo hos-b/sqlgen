@@ -4,10 +4,11 @@
 #include <rfl.hpp>
 
 #include "CreateTable.hpp"
+#include "Insert.hpp"
 
 namespace sqlgen::dynamic {
 
-using Statement = rfl::TaggedUnion<"stmt", CreateTable>;
+using Statement = rfl::TaggedUnion<"stmt", CreateTable, Insert>;
 
 }  // namespace sqlgen::dynamic
 

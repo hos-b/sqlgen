@@ -48,13 +48,11 @@ class Connection : public sqlgen::Connection {
   Result<Nothing> end_write() final;
 
   Result<Nothing> write(
-      const std::vector<std::vector<std::optional<std::string>>>& _data) final {
-    return error("TODO");
-  }
+      const std::vector<std::vector<std::optional<std::string>>>& _data) final;
 
  private:
-  /// Transforms a dynamic::Column to an SQL string that defines the column in a
-  /// CREATE TABLE statement.
+  /// Transforms a dynamic::Column to an SQL string that defines the column in
+  /// a CREATE TABLE statement.
   std::string column_to_sql_definition(const dynamic::Column& _col) noexcept;
 
   /// Transforms a CreateTable Statement to an SQL string.

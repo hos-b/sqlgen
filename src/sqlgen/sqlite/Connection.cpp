@@ -150,6 +150,45 @@ Result<Nothing> Connection::start_write(const dynamic::Insert& _stmt) {
   return Nothing{};
 }
 
+Result<Nothing> Connection::write(
+    const std::vector<std::vector<std::optional<std::string>>>& _data) {
+  if (!stmt_) {
+    return error(
+        " You need to call .start_write(...) before you can call "
+        ".write(...).");
+  }
+
+  for (const auto& row : _data) {
+    for (size_t i = 0; i < row.size(); ++i) {
+      if (row[i]) {
+        const auto res =
+            sqlite3_bind_text(stmt_.get(), static_cast<int>(i), row[i]->c_str(),
+                              static_cast<int>(row[i]->size()), SQLITE_STATIC);
+        if (res != SQLITE_OK) {
+          return error(sqlite3_errmsg(conn_.get()));
+        }
+      } else {
+        const auto res = sqlite3_bind_null(stmt_.get(), static_cast<int>(i));
+        if (res != SQLITE_OK) {
+          return error(sqlite3_errmsg(conn_.get()));
+        }
+      }
+    }
+
+    auto res = sqlite3_step(stmt_.get());
+    if (res != SQLITE_OK) {
+      return error(sqlite3_errmsg(conn_.get()));
+    }
+
+    res = sqlite3_reset(stmt_.get());
+    if (res != SQLITE_OK) {
+      return error(sqlite3_errmsg(conn_.get()));
+    }
+  }
+
+  return Nothing{};
+}
+
 Result<Nothing> Connection::end_write() {
   if (!stmt_) {
     return error(

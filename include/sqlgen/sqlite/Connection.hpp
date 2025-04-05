@@ -18,9 +18,11 @@ namespace sqlgen::sqlite {
 
 class Connection : public sqlgen::Connection {
   using ConnPtr = std::unique_ptr<sqlite3, decltype(&sqlite3_close)>;
+  using StmtPtr = std::unique_ptr<sqlite3_stmt, decltype(&sqlite3_finalize)>;
 
  public:
-  Connection(const std::string& _fname) : conn_(make_conn(_fname)) {}
+  Connection(const std::string& _fname)
+      : stmt_(StmtPtr(nullptr, &sqlite3_finalize)), conn_(make_conn(_fname)) {}
 
   Connection(const Connection& _other) = delete;
 
@@ -41,11 +43,9 @@ class Connection : public sqlgen::Connection {
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final;
 
-  Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
-    return error("TODO");
-  }
+  Result<Nothing> start_write(const dynamic::Insert& _stmt) final;
 
-  Result<Nothing> end_write() final { return error("TODO"); }
+  Result<Nothing> end_write() final;
 
   Result<Nothing> write(
       const std::vector<std::vector<std::optional<std::string>>>& _data) final {
@@ -73,6 +73,10 @@ class Connection : public sqlgen::Connection {
   std::string type_to_sql(const dynamic::Type& _type) noexcept;
 
  private:
+  /// A prepared statement - needed for the write operations. Note that we have
+  /// declared it before conn_, meaning it will be destroyed first.
+  StmtPtr stmt_;
+
   /// The underlying sqlite3 connection.
   ConnPtr conn_;
 };

@@ -17,6 +17,8 @@ namespace sqlgen {
 /// Abstract base class to be implemented by the different
 /// database connections.
 struct Connection {
+  virtual ~Connection() = default;
+
   /// Commits a statement,
   virtual Result<Nothing> commit() = 0;
 

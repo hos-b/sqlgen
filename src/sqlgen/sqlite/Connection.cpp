@@ -123,6 +123,43 @@ std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
   });
 }
 
+Result<Nothing> Connection::start_write(const dynamic::Insert& _stmt) {
+  if (stmt_) {
+    return error(
+        "A write operation has already been launched. You need to call "
+        ".end_write() before you can start another.");
+  }
+
+  const auto sql = to_sql(_stmt);
+
+  sqlite3_stmt* p_stmt = nullptr;
+
+  sqlite3_prepare(conn_.get(), /* Database handle */
+                  sql.c_str(), /* SQL statement, UTF-8 encoded */
+                  sql.size(),  /* Maximum length of zSql in bytes. */
+                  &p_stmt,     /* OUT: Statement handle */
+                  nullptr      /* OUT: Pointer to unused portion of zSql */
+  );
+
+  if (!p_stmt) {
+    return error(sqlite3_errmsg(conn_.get()));
+  }
+
+  stmt_ = StmtPtr(p_stmt, &sqlite3_finalize);
+
+  return Nothing{};
+}
+
+Result<Nothing> Connection::end_write() {
+  if (!stmt_) {
+    return error(
+        " You need to call .start_write(...) before you can call "
+        ".end_write().");
+  }
+  stmt_ = nullptr;
+  return Nothing{};
+}
+
 std::string Connection::type_to_sql(const dynamic::Type& _type) noexcept {
   return _type.visit([](const auto _t) -> std::string {
     using T = std::remove_cvref_t<decltype(_t)>;

@@ -13,8 +13,7 @@ template <class T>
 std::optional<std::string> get_schema() noexcept {
   using Type = std::remove_cvref_t<T>;
   if constexpr (has_schema<Type>) {
-    using LiteralType = typename Type::schema;
-    return LiteralType().str();
+    return std::string(Type::schema);
   } else {
     return std::nullopt;
   }

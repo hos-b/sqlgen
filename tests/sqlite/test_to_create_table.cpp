@@ -17,7 +17,7 @@ TEST(sqlite, test_to_create_table) {
   const auto create_table_stmt = sqlgen::parsing::to_create_table<TestTable>();
   const auto conn = sqlgen::sqlite::connect().value();
   const auto expected =
-      R"(CREATE TABLE "TestTable" IF NOT EXISTS ("field1" TEXT NOT NULL, "field2" INTEGER NOT NULL, "id" INTEGER PRIMARY KEY NOT NULL, "nullable" TEXT);)";
+      R"(CREATE TABLE IF NOT EXISTS "TestTable" ("field1" TEXT NOT NULL, "field2" INTEGER NOT NULL, "id" INTEGER PRIMARY KEY NOT NULL, "nullable" TEXT);)";
 
   EXPECT_EQ(conn->to_sql(create_table_stmt), expected);
 }

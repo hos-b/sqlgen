@@ -26,13 +26,15 @@ std::string Connection::create_table_to_sql(
 
   std::stringstream stream;
   stream << "CREATE TABLE ";
+
+  if (_stmt.if_not_exists) {
+    stream << "IF NOT EXISTS ";
+  }
+
   if (_stmt.table.schema) {
     stream << "\"" << *_stmt.table.schema << "\".";
   }
   stream << "\"" << _stmt.table.name << "\" ";
-  if (_stmt.if_not_exists) {
-    stream << "IF NOT EXISTS ";
-  }
 
   stream << "(";
   stream << internal::strings::join(
@@ -78,9 +80,9 @@ std::string Connection::insert_to_sql(const dynamic::Insert& _stmt) noexcept {
   if (_stmt.table.schema) {
     stream << "\"" << *_stmt.table.schema << "\".";
   }
-  stream << "\"" << _stmt.table.name << "\" ";
+  stream << "\"" << _stmt.table.name << "\"";
 
-  stream << "(";
+  stream << " (";
   stream << internal::strings::join(
       ", ", internal::collect::vector(_stmt.columns | transform(in_quotes)));
   stream << ")";
@@ -159,16 +161,18 @@ Result<Nothing> Connection::write(
   }
 
   for (const auto& row : _data) {
-    for (size_t i = 0; i < row.size(); ++i) {
+    const auto num_cols = static_cast<int>(row.size());
+
+    for (int i = 0; i < num_cols; ++i) {
       if (row[i]) {
         const auto res =
-            sqlite3_bind_text(stmt_.get(), static_cast<int>(i), row[i]->c_str(),
+            sqlite3_bind_text(stmt_.get(), i + 1, row[i]->c_str(),
                               static_cast<int>(row[i]->size()), SQLITE_STATIC);
         if (res != SQLITE_OK) {
           return error(sqlite3_errmsg(conn_.get()));
         }
       } else {
-        const auto res = sqlite3_bind_null(stmt_.get(), static_cast<int>(i));
+        const auto res = sqlite3_bind_null(stmt_.get(), i + 1);
         if (res != SQLITE_OK) {
           return error(sqlite3_errmsg(conn_.get()));
         }
@@ -176,7 +180,7 @@ Result<Nothing> Connection::write(
     }
 
     auto res = sqlite3_step(stmt_.get());
-    if (res != SQLITE_OK) {
+    if (res != SQLITE_OK && res != SQLITE_ROW && res != SQLITE_DONE) {
       return error(sqlite3_errmsg(conn_.get()));
     }
 
@@ -184,6 +188,12 @@ Result<Nothing> Connection::write(
     if (res != SQLITE_OK) {
       return error(sqlite3_errmsg(conn_.get()));
     }
+  }
+
+  // We need to reset the statement to avoid segfaults.
+  const auto res = sqlite3_clear_bindings(stmt_.get());
+  if (res != SQLITE_OK) {
+    return error(sqlite3_errmsg(conn_.get()));
   }
 
   return Nothing{};

@@ -6,7 +6,7 @@
 namespace test_schema {
 
 struct TestTable {
-  using schema = sqlgen::Literal<"test">;
+  static constexpr const char* schema = "test";
 
   std::string field1;
   int32_t field2;

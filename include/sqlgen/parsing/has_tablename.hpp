@@ -2,12 +2,13 @@
 #define SQLGEN_PARSING_HAS_TABLENAME_HPP_
 
 #include <concepts>
+#include <string>
 
 namespace sqlgen::parsing {
 
 template <typename T>
 concept has_tablename = requires() {
-  { typename T::tablename() } -> std::same_as<typename T::tablename>;
+  { T::tablename } -> std::convertible_to<std::string>;
 };
 
 }  // namespace sqlgen::parsing

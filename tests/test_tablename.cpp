@@ -6,7 +6,7 @@
 namespace test_tablename {
 
 struct TestTable {
-  using tablename = sqlgen::Literal<"TEST_TABLE">;
+  static constexpr const char* tablename = "TEST_TABLE";
 
   std::string field1;
   int32_t field2;

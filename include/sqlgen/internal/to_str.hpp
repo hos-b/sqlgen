@@ -5,30 +5,14 @@
 #include <string>
 #include <type_traits>
 
-#include "../parsing/has_reflection_method.hpp"
-#include "../parsing/is_nullable.hpp"
+#include "../parsing/Parser.hpp"
 
 namespace sqlgen::internal {
 
 template <class T>
 std::optional<std::string> to_str(const T& _val) {
   using Type = std::remove_cvref_t<T>;
-  if constexpr (parsing::is_nullable_v<Type>) {
-    if (!_val) {
-      return std::nullopt;
-    } else {
-      return to_str(*_val);
-    }
-
-  } else if constexpr (parsing::has_reflection_method<Type>) {
-    return to_str(_val.reflection());
-
-  } else if constexpr (std::is_same_v<Type, std::string>) {
-    return _val;
-
-  } else {
-    return std::to_string(_val);
-  }
+  return parsing::Parser<Type>::write(_val);
 }
 
 }  // namespace sqlgen::internal

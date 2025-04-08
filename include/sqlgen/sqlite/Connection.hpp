@@ -18,14 +18,12 @@
 namespace sqlgen::sqlite {
 
 class Connection : public sqlgen::Connection {
-  using ConnPtr = std::unique_ptr<sqlite3, decltype(&sqlite3_close)>;
-  using StmtPtr = std::unique_ptr<sqlite3_stmt, decltype(&sqlite3_finalize)>;
+  using ConnPtr = Ref<sqlite3>;
+  using StmtPtr = std::shared_ptr<sqlite3_stmt>;
 
  public:
   Connection(const std::string& _fname)
-      : stmt_(StmtPtr(nullptr, &sqlite3_finalize)), conn_(make_conn(_fname)) {}
-
-  Connection(const Connection& _other) = delete;
+      : stmt_(nullptr), conn_(make_conn(_fname)) {}
 
   static rfl::Result<Ref<sqlgen::Connection>> make(
       const std::string& _fname) noexcept;
@@ -35,8 +33,6 @@ class Connection : public sqlgen::Connection {
   Result<Nothing> commit() final { return execute("COMMIT;"); }
 
   Result<Nothing> execute(const std::string& _sql) noexcept final;
-
-  Connection& operator=(const Connection& _other) = delete;
 
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
     return error("TODO");

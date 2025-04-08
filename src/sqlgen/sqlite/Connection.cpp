@@ -103,7 +103,7 @@ typename Connection::ConnPtr Connection::make_conn(const std::string& _fname) {
     throw std::runtime_error("Can't open database: " +
                              std::string(sqlite3_errmsg(conn)));
   }
-  return ConnPtr(conn, &sqlite3_close);
+  return ConnPtr::make(std::shared_ptr<sqlite3>(conn, &sqlite3_close)).value();
 }
 
 std::string Connection::properties_to_sql(

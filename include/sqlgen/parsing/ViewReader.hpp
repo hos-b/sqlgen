@@ -31,7 +31,7 @@ class ViewReader {
       std::stringstream stream;
       stream << "Expected exactly " << std::to_string(size_)
              << " fields, but got " << _row.size() << ".";
-      return std::make_pair(error(stream.str()), 0);
+      return std::make_pair(Error(stream.str()), 0);
     }
     for (size_t i = 0; i < size_; ++i) {
       const auto err = assign_to_field_i(

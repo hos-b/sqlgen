@@ -1,5 +1,5 @@
-#ifndef SQLGEN_WRITE_HPP_
-#define SQLGEN_WRITE_HPP_
+#ifndef SQLGEN_READ_HPP_
+#define SQLGEN_READ_HPP_
 
 #include <iterator>
 #include <optional>
@@ -11,18 +11,15 @@
 #include "Connection.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
-#include "internal/batch_size.hpp"
 #include "internal/to_str_vec.hpp"
 #include "parsing/to_create_table.hpp"
 #include "parsing/to_insert.hpp"
 
 namespace sqlgen {
 
-template <class ItBegin, class ItEnd>
-Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
-                      ItEnd _end) {
-  using T =
-      std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
+template <class ContainerType>
+Result<ContainerType> read(const Ref<Connection>& _conn) {
+  using T = std::remove_cvref_t<typename ContainerType::value_type>;
 
   const auto start_write = [&](const auto&) -> Result<Nothing> {
     const auto insert_stmt = parsing::to_insert<T>();
@@ -34,7 +31,7 @@ Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
       std::vector<std::vector<std::optional<std::string>>> data;
       for (auto it = _begin; it != _end; ++it) {
         data.emplace_back(internal::to_str_vec(*it));
-        if (data.size() == SQLGEN_BATCH_SIZE) {
+        if (data.size() == 50000) {
           _conn->write(data).value();
           data.clear();
         }

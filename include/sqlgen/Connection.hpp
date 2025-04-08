@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "Iterator.hpp"
+#include "IteratorBase.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
 #include "dynamic/Insert.hpp"
@@ -27,7 +27,7 @@ struct Connection {
   virtual Result<Nothing> execute(const std::string& _sql) = 0;
 
   /// Reads the results of a SelectFrom statement.
-  virtual Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) = 0;
+  virtual Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) = 0;
 
   /// Transpiles a statement to a particular SQL dialect.
   virtual std::string to_sql(const dynamic::Statement& _stmt) = 0;

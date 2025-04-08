@@ -1,24 +1,70 @@
 #ifndef SQLGEN_ITERATOR_HPP_
 #define SQLGEN_ITERATOR_HPP_
 
-#include <optional>
-#include <string>
-#include <vector>
+#include <memory>
+#include <ranges>
 
+#include "Ref.hpp"
 #include "Result.hpp"
+#include "internal/batch_size.hpp"
+#include "internal/collect/vector.hpp"
+#include "internal/from_str_vec.hpp"
 
 namespace sqlgen {
 
-/// Abstract base class for an iterator to be returned by Connection::read(...).
-struct Iterator {
-  /// Whether the end of the available data has been reached.
-  virtual bool end() const = 0;
+/// An input_iterator that returns the underlying type.
+template <class T>
+class Iterator {
+ public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = Result<T>;
 
-  /// Returns the next batch of rows.
-  /// If _batch_size is greater than the number of rows left, returns all
-  /// of the rows left.
-  virtual Result<std::vector<std::vector<std::optional<std::string>>>> next(
-      const size_t _batch_size) = 0;
+  struct End {};
+
+  Iterator(const Ref<IteratorBase>& _it)
+      : current_batch_(get_next_batch()), it_(_it), ix_(0) {}
+
+  ~Iterator() = default;
+
+  Result<T>& operator*() const noexcept { return (*current_batch_)[ix_]; }
+
+  bool operator==(const End&) noexcept {
+    return ix_ >= current_batch_->size() && it_->end();
+  }
+
+  bool operator!=(const End& _end) noexcept { return !(*this == _end); }
+
+  Iterator<T>& operator++() noexcept {
+    if (ix_ >= current_batch_->size() && !it_->end()) {
+      current_batch_ = get_next_batch();
+      ix_ = 0;
+    } else {
+      ++ix_;
+    }
+  }
+
+  void operator++(int) noexcept { ++*this; }
+
+ private:
+  Ref<std::vector<Result<T>>> get_next_batch() const noexcept {
+    using namespace std::ranges::views;
+    return it_->next(SQLGEN_BATCH_SIZE)
+        .transform([](auto str_vec) {
+          return Ref<std::vector<Result<T>>>::make(internal::collect::vector(
+              str_vec | transform(internal::from_str_vec<T>)));
+        })
+        .value_or(Ref<std::vector<Result<T>>>());
+  }
+
+ private:
+  /// The current batch of data.
+  Ref<std::vector<Result<T>>> current_batch_;
+
+  /// The underlying database iterator.
+  Ref<IteratorBase> it_;
+
+  /// The current index in the current batch.
+  size_t ix_;
 };
 
 }  // namespace sqlgen

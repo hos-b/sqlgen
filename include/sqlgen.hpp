@@ -3,8 +3,10 @@
 
 #include "sqlgen/Connection.hpp"
 #include "sqlgen/Iterator.hpp"
+#include "sqlgen/IteratorBase.hpp"
 #include "sqlgen/Literal.hpp"
 #include "sqlgen/PrimaryKey.hpp"
+#include "sqlgen/Range.hpp"
 #include "sqlgen/Ref.hpp"
 #include "sqlgen/Result.hpp"
 #include "sqlgen/write.hpp"

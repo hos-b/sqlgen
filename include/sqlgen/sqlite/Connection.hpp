@@ -9,6 +9,7 @@
 #include <string>
 
 #include "../Connection.hpp"
+#include "../IteratorBase.hpp"
 #include "../Ref.hpp"
 #include "../Result.hpp"
 #include "../dynamic/Column.hpp"
@@ -37,7 +38,7 @@ class Connection : public sqlgen::Connection {
 
   Connection& operator=(const Connection& _other) = delete;
 
-  Result<Ref<Iterator>> read(const dynamic::SelectFrom& _query) final {
+  Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
     return error("TODO");
   }
 

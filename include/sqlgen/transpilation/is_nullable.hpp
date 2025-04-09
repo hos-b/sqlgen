@@ -1,5 +1,5 @@
-#ifndef SQLGEN_PARSING_IS_NULLABLE_HPP_
-#define SQLGEN_PARSING_IS_NULLABLE_HPP_
+#ifndef SQLGEN_TRANSPILATION_IS_NULLABLE_HPP_
+#define SQLGEN_TRANSPILATION_IS_NULLABLE_HPP_
 
 #include <memory>
 #include <optional>
@@ -7,7 +7,7 @@
 
 #include "has_reflection_method.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 template <class T>
 class is_ptr;
@@ -43,6 +43,6 @@ consteval bool is_nullable() {
 template <class T>
 constexpr bool is_nullable_v = is_nullable<T>();
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

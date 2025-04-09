@@ -1,12 +1,12 @@
-#ifndef SQLGEN_PARSING_GET_TABLENAME_HPP_
-#define SQLGEN_PARSING_GET_TABLENAME_HPP_
+#ifndef SQLGEN_TRANSPILATION_GET_TABLENAME_HPP_
+#define SQLGEN_TRANSPILATION_GET_TABLENAME_HPP_
 
 #include <rfl.hpp>
 #include <type_traits>
 
 #include "has_tablename.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 namespace internal {
 
@@ -30,6 +30,6 @@ std::string get_tablename() noexcept {
   }
 }
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

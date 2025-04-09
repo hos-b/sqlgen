@@ -2,7 +2,7 @@
 
 #include <rfl/json.hpp>
 #include <sqlgen.hpp>
-#include <sqlgen/parsing/to_select_from.hpp>
+#include <sqlgen/transpilation/to_select_from.hpp>
 
 namespace test_to_select_from {
 
@@ -14,7 +14,8 @@ struct TestTable {
 };
 
 TEST(general, test_to_select_from) {
-  const auto select_from_stmt = sqlgen::parsing::to_select_from<TestTable>();
+  const auto select_from_stmt =
+      sqlgen::transpilation::to_select_from<TestTable>();
 
   const std::string expected =
       R"({"table":{"name":"TestTable"},"columns":[{"name":"field1","type":{"type":"Text","properties":{"primary":false,"nullable":false}}},{"name":"field2","type":{"type":"Int32","properties":{"primary":false,"nullable":false}}},{"name":"id","type":{"type":"UInt32","properties":{"primary":true,"nullable":false}}},{"name":"nullable","type":{"type":"Text","properties":{"primary":false,"nullable":true}}}]})";

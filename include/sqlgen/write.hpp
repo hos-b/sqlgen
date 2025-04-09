@@ -13,8 +13,8 @@
 #include "Result.hpp"
 #include "internal/batch_size.hpp"
 #include "internal/to_str_vec.hpp"
-#include "parsing/to_create_table.hpp"
-#include "parsing/to_insert.hpp"
+#include "transpilation/to_create_table.hpp"
+#include "transpilation/to_insert.hpp"
 
 namespace sqlgen {
 
@@ -25,7 +25,7 @@ Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
       std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
 
   const auto start_write = [&](const auto&) -> Result<Nothing> {
-    const auto insert_stmt = parsing::to_insert<T>();
+    const auto insert_stmt = transpilation::to_insert<T>();
     return _conn->start_write(insert_stmt);
   };
 
@@ -53,7 +53,7 @@ Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
     return _conn->end_write();
   };
 
-  const auto create_table_stmt = parsing::to_create_table<T>();
+  const auto create_table_stmt = transpilation::to_create_table<T>();
 
   return _conn->execute(_conn->to_sql(create_table_stmt))
       .and_then(start_write)

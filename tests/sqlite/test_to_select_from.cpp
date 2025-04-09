@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <sqlgen.hpp>
-#include <sqlgen/parsing/to_select_from.hpp>
 #include <sqlgen/sqlite.hpp>
+#include <sqlgen/transpilation/to_select_from.hpp>
 
 namespace test_to_select_from {
 
@@ -14,7 +14,8 @@ struct TestTable {
 };
 
 TEST(sqlite, test_to_select_from) {
-  const auto select_from_stmt = sqlgen::parsing::to_select_from<TestTable>();
+  const auto select_from_stmt =
+      sqlgen::transpilation::to_select_from<TestTable>();
   const auto conn = sqlgen::sqlite::connect().value();
   const auto expected =
       R"(SELECT "field1", "field2", "id", "nullable" FROM "TestTable";)";

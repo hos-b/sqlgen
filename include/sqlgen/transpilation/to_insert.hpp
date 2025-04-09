@@ -1,5 +1,5 @@
-#ifndef SQLGEN_PARSING_TO_INSERT_HPP_
-#define SQLGEN_PARSING_TO_INSERT_HPP_
+#ifndef SQLGEN_TRANSPILATION_TO_INSERT_HPP_
+#define SQLGEN_TRANSPILATION_TO_INSERT_HPP_
 
 #include <ranges>
 #include <rfl.hpp>
@@ -15,7 +15,7 @@
 #include "get_tablename.hpp"
 #include "make_columns.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 template <class T>
   requires std::is_class_v<std::remove_cvref_t<T>> &&
@@ -37,6 +37,6 @@ dynamic::Insert to_insert() {
                              columns | transform(get_name))};
 }
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

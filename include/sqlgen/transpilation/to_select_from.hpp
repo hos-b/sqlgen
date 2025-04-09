@@ -1,5 +1,5 @@
-#ifndef SQLGEN_PARSING_TO_SELECT_FROM_HPP_
-#define SQLGEN_PARSING_TO_SELECT_FROM_HPP_
+#ifndef SQLGEN_TRANSPILATION_TO_SELECT_FROM_HPP_
+#define SQLGEN_TRANSPILATION_TO_SELECT_FROM_HPP_
 
 #include <ranges>
 #include <rfl.hpp>
@@ -14,7 +14,7 @@
 #include "get_tablename.hpp"
 #include "make_columns.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 template <class T>
   requires std::is_class_v<std::remove_cvref_t<T>> &&
@@ -31,6 +31,6 @@ dynamic::SelectFrom to_select_from() {
                              .columns = columns};
 }
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

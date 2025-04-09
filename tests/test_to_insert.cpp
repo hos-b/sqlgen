@@ -2,7 +2,7 @@
 
 #include <rfl/json.hpp>
 #include <sqlgen.hpp>
-#include <sqlgen/parsing/to_insert.hpp>
+#include <sqlgen/transpilation/to_insert.hpp>
 
 namespace test_to_insert {
 
@@ -14,7 +14,7 @@ struct TestTable {
 };
 
 TEST(general, test_to_insert) {
-  const auto insert_stmt = sqlgen::parsing::to_insert<TestTable>();
+  const auto insert_stmt = sqlgen::transpilation::to_insert<TestTable>();
 
   const std::string expected =
       R"({"table":{"name":"TestTable"},"columns":["field1","field2","id","nullable"]})";

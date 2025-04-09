@@ -8,8 +8,8 @@
 #include "../Result.hpp"
 #include "../dynamic/Type.hpp"
 #include "../dynamic/types.hpp"
+#include "../transpilation/has_reflection_method.hpp"
 #include "Parser_base.hpp"
-#include "has_reflection_method.hpp"
 
 namespace sqlgen::parsing {
 
@@ -18,7 +18,7 @@ struct Parser {
   using Type = std::remove_cvref_t<T>;
 
   static Result<T> read(const std::optional<std::string>& _str) noexcept {
-    if constexpr (has_reflection_method<Type>) {
+    if constexpr (transpilation::has_reflection_method<Type>) {
       return Parser<std::remove_cvref_t<typename Type::ReflectionType>>::read(
                  _str)
           .transform([](auto&& _t) { return Type(std::move(_t)); });
@@ -46,7 +46,7 @@ struct Parser {
   }
 
   static std::optional<std::string> write(const T& _t) noexcept {
-    if constexpr (has_reflection_method<Type>) {
+    if constexpr (transpilation::has_reflection_method<Type>) {
       return Parser<std::remove_cvref_t<typename Type::ReflectionType>>::write(
           _t.reflection());
     } else {
@@ -55,7 +55,7 @@ struct Parser {
   }
 
   static dynamic::Type to_type() noexcept {
-    if constexpr (has_reflection_method<Type>) {
+    if constexpr (transpilation::has_reflection_method<Type>) {
       return Parser<
           std::remove_cvref_t<typename Type::ReflectionType>>::to_type();
 

@@ -1,5 +1,5 @@
-#ifndef SQLGEN_PARSING_MAKE_COLUMNS_HPP_
-#define SQLGEN_PARSING_MAKE_COLUMNS_HPP_
+#ifndef SQLGEN_TRANSPILATION_MAKE_COLUMNS_HPP_
+#define SQLGEN_TRANSPILATION_MAKE_COLUMNS_HPP_
 
 #include <rfl.hpp>
 #include <string>
@@ -8,12 +8,12 @@
 #include "../dynamic/Column.hpp"
 #include "../dynamic/Type.hpp"
 #include "../dynamic/types.hpp"
-#include "Parser.hpp"
+#include "../parsing/Parser.hpp"
 #include "has_reflection_method.hpp"
 #include "is_nullable.hpp"
 #include "is_primary_key.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 template <class Name>
 std::string to_colname() {
@@ -23,7 +23,7 @@ std::string to_colname() {
 template <class Type>
 dynamic::Type to_type() {
   using T = std::remove_cvref_t<Type>;
-  return Parser<T>::to_type();
+  return parsing::Parser<T>::to_type();
 }
 
 template <class FieldType>
@@ -38,6 +38,6 @@ std::vector<dynamic::Column> make_columns(std::integer_sequence<int, _is...>) {
       {to_column<rfl::tuple_element_t<_is, Fields>>()...});
 }
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

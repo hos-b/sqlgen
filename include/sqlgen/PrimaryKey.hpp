@@ -1,7 +1,7 @@
 #ifndef SQLGEN_PRIMARY_KEY_HPP_
 #define SQLGEN_PRIMARY_KEY_HPP_
 
-#include "parsing/is_nullable.hpp"
+#include "transpilation/is_nullable.hpp"
 
 namespace sqlgen {
 
@@ -9,7 +9,7 @@ template <class T>
 struct PrimaryKey {
   using ReflectionType = T;
 
-  static_assert(!parsing::is_nullable_v<T>,
+  static_assert(!transpilation::is_nullable_v<T>,
                 "A primary key cannot be nullable.");
 
   PrimaryKey() : value_(0) {}
@@ -87,7 +87,7 @@ struct PrimaryKey {
     return *this;
   }
 
-  /// Necessary for the automated parsing to work.
+  /// Necessary for the automated transpilation to work.
   const T& reflection() const { return value_; }
 
   /// Assigns the underlying object.

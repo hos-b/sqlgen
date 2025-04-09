@@ -1,5 +1,5 @@
-#ifndef SQLGEN_PARSING_GET_SCHEMA_HPP_
-#define SQLGEN_PARSING_GET_SCHEMA_HPP_
+#ifndef SQLGEN_TRANSPILATION_GET_SCHEMA_HPP_
+#define SQLGEN_TRANSPILATION_GET_SCHEMA_HPP_
 
 #include <optional>
 #include <rfl.hpp>
@@ -7,7 +7,7 @@
 
 #include "has_schema.hpp"
 
-namespace sqlgen::parsing {
+namespace sqlgen::transpilation {
 
 template <class T>
 std::optional<std::string> get_schema() noexcept {
@@ -19,6 +19,6 @@ std::optional<std::string> get_schema() noexcept {
   }
 }
 
-}  // namespace sqlgen::parsing
+}  // namespace sqlgen::transpilation
 
 #endif

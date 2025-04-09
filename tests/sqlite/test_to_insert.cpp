@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <sqlgen.hpp>
-#include <sqlgen/parsing/to_insert.hpp>
 #include <sqlgen/sqlite.hpp>
+#include <sqlgen/transpilation/to_insert.hpp>
 
 namespace test_to_insert {
 
@@ -14,7 +14,7 @@ struct TestTable {
 };
 
 TEST(sqlite, test_to_insert) {
-  const auto insert_stmt = sqlgen::parsing::to_insert<TestTable>();
+  const auto insert_stmt = sqlgen::transpilation::to_insert<TestTable>();
   const auto conn = sqlgen::sqlite::connect().value();
   const auto expected =
       R"(INSERT INTO "TestTable" ("field1", "field2", "id", "nullable") VALUES (?, ?, ?, ?);)";

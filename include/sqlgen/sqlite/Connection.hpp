@@ -64,6 +64,9 @@ class Connection : public sqlgen::Connection {
   /// Expresses the properies as SQL.
   std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
 
+  /// Transforms an Insert Statement to an SQL string.
+  std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept;
+
   /// Expresses the type as SQL.
   std::string type_to_sql(const dynamic::Type& _type) noexcept;
 

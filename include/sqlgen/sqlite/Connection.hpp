@@ -34,9 +34,7 @@ class Connection : public sqlgen::Connection {
 
   Result<Nothing> execute(const std::string& _sql) noexcept final;
 
-  Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
-    return error("TODO");
-  }
+  Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final;
 
@@ -71,8 +69,8 @@ class Connection : public sqlgen::Connection {
   std::string type_to_sql(const dynamic::Type& _type) noexcept;
 
  private:
-  /// A prepared statement - needed for the write operations. Note that we have
-  /// declared it before conn_, meaning it will be destroyed first.
+  /// A prepared statement - needed for the read and write operations. Note that
+  /// we have declared it before conn_, meaning it will be destroyed first.
   StmtPtr stmt_;
 
   /// The underlying sqlite3 connection.

@@ -6,6 +6,7 @@
 
 #include "sqlgen/internal/collect/vector.hpp"
 #include "sqlgen/internal/strings/strings.hpp"
+#include "sqlgen/sqlite/Iterator.hpp"
 
 namespace sqlgen::sqlite {
 
@@ -110,6 +111,28 @@ std::string Connection::properties_to_sql(
     const dynamic::types::Properties& _p) noexcept {
   return std::string(_p.primary ? " PRIMARY KEY" : "") +
          std::string(_p.nullable ? "" : " NOT NULL");
+}
+
+Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
+  const auto sql = to_sql(_query);
+
+  sqlite3_stmt* p_stmt = nullptr;
+
+  sqlite3_prepare(conn_.get(), /* Database handle */
+                  sql.c_str(), /* SQL statement, UTF-8 encoded */
+                  sql.size(),  /* Maximum length of zSql in bytes. */
+                  &p_stmt,     /* OUT: Statement handle */
+                  nullptr      /* OUT: Pointer to unused portion of zSql */
+  );
+
+  if (!p_stmt) {
+    return error(sqlite3_errmsg(conn_.get()));
+  }
+
+  return Ref<sqlite3_stmt>::make(StmtPtr(p_stmt, &sqlite3_finalize))
+      .transform([&](auto _stmt) -> Ref<IteratorBase> {
+        return Ref<Iterator>::make(_stmt, conn_);
+      });
 }
 
 std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {

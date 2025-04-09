@@ -19,25 +19,31 @@ class Iterator : public sqlgen::IteratorBase {
   using StmtPtr = Ref<sqlite3_stmt>;
 
  public:
-  Iterator(const StmtPtr& _stmt, const ConnPtr& _conn)
-      : rownum_(0), stmt_(_stmt), conn_(_conn) {}
+  Iterator(const StmtPtr& _stmt, const ConnPtr& _conn);
 
-  ~Iterator() = default;
+  ~Iterator();
 
   /// Whether the end of the available data has been reached.
-  bool end() const final { return false; }
+  bool end() const final;
 
   /// Returns the next batch of rows.
   /// If _batch_size is greater than the number of rows left, returns all
   /// of the rows left.
   Result<std::vector<std::vector<std::optional<std::string>>>> next(
-      const size_t _batch_size) final {
-    return error("TODO");
-  }
+      const size_t _batch_size) final;
 
  private:
+  void step() { end_ = (sqlite3_step(stmt_.get()) != SQLITE_ROW); }
+
+ private:
+  /// Whether the end is reached.
+  bool end_;
+
   /// The current rownumber.
   size_t rownum_;
+
+  /// The number of columns.
+  int num_cols_;
 
   /// The prepared statement. Note that we have
   /// declared it before conn_, meaning it will be destroyed first.

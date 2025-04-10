@@ -1,61 +1,45 @@
 #ifndef SQLGEN_READ_HPP_
 #define SQLGEN_READ_HPP_
 
-#include <iterator>
-#include <optional>
-#include <rfl.hpp>
-#include <string>
-#include <type_traits>
-#include <vector>
-
 #include "Connection.hpp"
+#include "Range.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
-#include "internal/to_str_vec.hpp"
-#include "transpilation/to_create_table.hpp"
-#include "transpilation/to_insert.hpp"
+#include "internal/is_range.hpp"
+#include "transpilation/to_select_from.hpp"
 
 namespace sqlgen {
 
 template <class ContainerType>
-Result<ContainerType> read(const Ref<Connection>& _conn) {
-  using T = std::remove_cvref_t<typename ContainerType::value_type>;
+Result<ContainerType> read(const Ref<Connection>& _conn) noexcept {
+  using ValueType = typename ContainerType::value_type;
 
-  const auto start_write = [&](const auto&) -> Result<Nothing> {
-    const auto insert_stmt = transpilation::to_insert<T>();
-    return _conn->start_write(insert_stmt);
-  };
+  if constexpr (internal::is_range_v<ContainerType>) {
+    const auto query = transpilation::to_select_from<ValueType>();
+    return _conn->read(query).transform(
+        [](auto&& _it) { return ContainerType(_it); });
 
-  const auto write = [&](const auto&) -> Result<Nothing> {
-    try {
-      std::vector<std::vector<std::optional<std::string>>> data;
-      for (auto it = _begin; it != _end; ++it) {
-        data.emplace_back(internal::to_str_vec(*it));
-        if (data.size() == 50000) {
-          _conn->write(data).value();
-          data.clear();
+  } else {
+    const auto to_container = [](auto range) -> Result<ContainerType> {
+      ContainerType container;
+      for (auto& res : range) {
+        if (res) {
+          container.emplace_back(std::move(*res));
+        } else {
+          return error(res.error().what());
         }
       }
-      if (data.size() != 0) {
-        _conn->write(data).value();
-      }
-      return Nothing{};
-    } catch (std::exception& e) {
-      _conn->end_write();
-      return error(e.what());
-    }
-  };
+      return container;
+    };
 
-  const auto end_write = [&](const auto&) -> Result<Nothing> {
-    return _conn->end_write();
-  };
+    return read<Range<ValueType>>(_conn).and_then(to_container);
+  }
+}
 
-  const auto create_table_stmt = transpilation::to_create_table<T>();
-
-  return _conn->execute(_conn->to_sql(create_table_stmt))
-      .and_then(start_write)
-      .and_then(write)
-      .and_then(end_write);
+template <class ContainerType>
+Result<ContainerType> read(const Result<Ref<Connection>>& _res) noexcept {
+  return _res.and_then(
+      [](const auto& _conn) { return read<ContainerType>(_conn); });
 }
 
 }  // namespace sqlgen

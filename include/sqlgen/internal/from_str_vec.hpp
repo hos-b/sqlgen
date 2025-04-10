@@ -34,7 +34,7 @@ void assign_if_field_is_field_i(
       *_err = Error(stream.str());
       return;
     }
-    rfl::get<i>(*_view) = std::move(*res);
+    *rfl::get<i>(*_view) = std::move(*res);
   }
 }
 
@@ -43,7 +43,7 @@ std::optional<Error> assign_to_field_i(
     const std::vector<std::optional<std::string>>& _row, const size_t _i,
     ViewType* _view, std::integer_sequence<size_t, is...>) noexcept {
   std::optional<Error> err;
-  (assign_if_field_is_field_i<is>(_row, _i, _view, &err), ...);
+  (assign_if_field_is_field_i<ViewType, is>(_row, _i, _view, &err), ...);
   return err;
 }
 

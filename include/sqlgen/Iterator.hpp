@@ -22,11 +22,13 @@ class Iterator {
   struct End {};
 
   Iterator(const Ref<IteratorBase>& _it)
-      : current_batch_(get_next_batch()), it_(_it), ix_(0) {}
+      : current_batch_(get_next_batch(_it)), it_(_it), ix_(0) {}
 
   ~Iterator() = default;
 
   Result<T>& operator*() const noexcept { return (*current_batch_)[ix_]; }
+
+  Result<T>* operator->() const noexcept { return &(*current_batch_)[ix_]; }
 
   bool operator==(const End&) noexcept {
     return ix_ >= current_batch_->size() && it_->end();
@@ -36,19 +38,21 @@ class Iterator {
 
   Iterator<T>& operator++() noexcept {
     if (ix_ >= current_batch_->size() && !it_->end()) {
-      current_batch_ = get_next_batch();
+      current_batch_ = get_next_batch(it_);
       ix_ = 0;
     } else {
       ++ix_;
     }
+    return *this;
   }
 
   void operator++(int) noexcept { ++*this; }
 
  private:
-  Ref<std::vector<Result<T>>> get_next_batch() const noexcept {
+  static Ref<std::vector<Result<T>>> get_next_batch(
+      const Ref<IteratorBase>& _it) noexcept {
     using namespace std::ranges::views;
-    return it_->next(SQLGEN_BATCH_SIZE)
+    return _it->next(SQLGEN_BATCH_SIZE)
         .transform([](auto str_vec) {
           return Ref<std::vector<Result<T>>>::make(internal::collect::vector(
               str_vec | transform(internal::from_str_vec<T>)));

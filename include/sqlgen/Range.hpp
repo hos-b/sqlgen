@@ -13,6 +13,8 @@ namespace sqlgen {
 template <class T>
 class Range {
  public:
+  using value_type = T;
+
   struct End {};
 
   Range(const Ref<IteratorBase>& _it) : it_(_it) {}

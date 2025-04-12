@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include "Iterator.hpp"
+#include "Result.hpp"
 
 namespace sqlgen {
 
@@ -13,7 +14,10 @@ namespace sqlgen {
 template <class T>
 class Range {
  public:
-  using value_type = T;
+  using value_type = Result<T>;
+
+  static_assert(std::input_iterator<Iterator<T>>,
+                "This must be an input iterator.");
 
   struct End {};
 

@@ -1,6 +1,7 @@
 #ifndef SQLGEN_ITERATOR_HPP_
 #define SQLGEN_ITERATOR_HPP_
 
+#include <iterator>
 #include <memory>
 #include <ranges>
 
@@ -19,7 +20,15 @@ class Iterator {
   using difference_type = std::ptrdiff_t;
   using value_type = Result<T>;
 
-  struct End {};
+  struct End {
+    bool operator==(const Iterator<T>& _it) const noexcept {
+      return _it == *this;
+    }
+
+    bool operator!=(const Iterator<T>& _it) const noexcept {
+      return _it != *this;
+    }
+  };
 
   Iterator(const Ref<IteratorBase>& _it)
       : current_batch_(get_next_batch(_it)), it_(_it), ix_(0) {}
@@ -30,11 +39,11 @@ class Iterator {
 
   Result<T>* operator->() const noexcept { return &(*current_batch_)[ix_]; }
 
-  bool operator==(const End&) noexcept {
+  bool operator==(const End&) const noexcept {
     return ix_ >= current_batch_->size() && it_->end();
   }
 
-  bool operator!=(const End& _end) noexcept { return !(*this == _end); }
+  bool operator!=(const End& _end) const noexcept { return !(*this == _end); }
 
   Iterator<T>& operator++() noexcept {
     if (ix_ >= current_batch_->size() && !it_->end()) {

@@ -12,9 +12,8 @@ namespace sqlgen {
 
 template <class ContainerType>
 Result<ContainerType> read(const Ref<Connection>& _conn) noexcept {
-  using ValueType = typename ContainerType::value_type;
-
   if constexpr (internal::is_range_v<ContainerType>) {
+    using ValueType = typename ContainerType::value_type::value_type;
     const auto query = transpilation::to_select_from<ValueType>();
     return _conn->read(query).transform(
         [](auto&& _it) { return ContainerType(_it); });
@@ -32,6 +31,7 @@ Result<ContainerType> read(const Ref<Connection>& _conn) noexcept {
       return container;
     };
 
+    using ValueType = typename ContainerType::value_type;
     return read<Range<ValueType>>(_conn).and_then(to_container);
   }
 }

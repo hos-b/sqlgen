@@ -11,7 +11,7 @@ target_precompile_headers(sqlgen-tests PRIVATE [["sqlgen.hpp"]] <iostream> <stri
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++20")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Werror -ggdb")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Werror -ggdb -fconcepts-diagnostics-depth=5")
 endif()
 
 target_link_libraries(

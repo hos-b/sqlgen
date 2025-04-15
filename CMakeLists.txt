@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.23)
 
 option(SQLGEN_BUILD_SHARED "Build shared library" ${BUILD_SHARED_LIBS})
 
-option(SQLGEN_SQLITE3 "Enable sqlite3 support" ON) # enabled by default
+option(SQLGEN_POSTGRES "Enable PostgreSQL support" ON) # enabled by default
 
-#option(SQLGEN_BUILD_BENCHMARKS "Build benchmarks" OFF)
+option(SQLGEN_SQLITE3 "Enable SQLite3 support" ON) # enabled by default
+
 option(SQLGEN_BUILD_TESTS "Build tests" OFF)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +18,18 @@ set(SQLGEN_USE_VCPKG_DEFAULT ON)
 option(SQLGEN_USE_VCPKG "Use VCPKG to download and build dependencies" ${SQLGEN_USE_VCPKG_DEFAULT})
 
 if (SQLGEN_USE_VCPKG)
+    if (SQLGEN_BUILD_TESTS)
+        list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+    endif()
+    
+    if (SQLGEN_POSTGRES)
+        list(APPEND VCPKG_MANIFEST_FEATURES "postgres")
+    endif()
+    
+    if (SQLGEN_SQLITE3)
+        list(APPEND VCPKG_MANIFEST_FEATURES "sqlite3")
+    endif()
+    
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 endif ()
 
@@ -44,6 +57,13 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
+if (SQLGEN_POSTGRES)
+    if (NOT TARGET PostgreSQL)
+        find_package(PostgreSQL REQUIRED)
+    endif()
+    target_link_libraries(sqlgen PUBLIC PostgreSQL::PostgreSQL)
+endif()
+
 if (SQLGEN_SQLITE3)
     list(APPEND SQLGEN_SOURCES src/sqlgen_sqlite.cpp)
     if (NOT TARGET unofficial-sqlite3)
@@ -64,13 +84,6 @@ if (SQLGEN_BUILD_TESTS)
     find_package(GTest CONFIG REQUIRED)
     set(SQLGEN_GTEST_LIB sqlgen GTest::gtest_main)
     add_subdirectory(tests)
-endif ()
-
-if (SQLGEN_BUILD_BENCHMARKS)
-    if (NOT TARGET benchmark::benchmark)
-        find_package(benchmark CONFIG REQUIRED)
-    endif ()
-    add_subdirectory(benchmarks)
 endif ()
 
 if (PROJECT_IS_TOP_LEVEL)

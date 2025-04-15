@@ -57,6 +57,12 @@ if (result) {
 
 ## Installation
 
+These three libraries are needed for PostgreSQL support:
+
+```
+sudo apt-get install autoconf bison flex
+```
+
 To install vcpkg:
 
 ```

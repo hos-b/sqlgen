@@ -46,8 +46,12 @@ class Connection : public sqlgen::Connection {
       const std::vector<std::vector<std::optional<std::string>>>& _data) final;
 
  private:
-  static rfl::Result<Ref<sqlgen::Connection>> make_conn(
-      const std::string& _conn_str);
+  static ConnPtr make_conn(const std::string& _conn_str);
+
+ private:
+  ConnPtr conn_;
+
+  Credentials credentials_;
 };
 
 }  // namespace sqlgen::postgres

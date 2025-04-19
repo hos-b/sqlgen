@@ -58,6 +58,7 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>)
 
 if (SQLGEN_POSTGRES)
+    list(APPEND SQLGEN_SOURCES src/sqlgen_postgres.cpp)
     if (NOT TARGET PostgreSQL)
         find_package(PostgreSQL REQUIRED)
     endif()

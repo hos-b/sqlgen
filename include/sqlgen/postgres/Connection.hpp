@@ -23,7 +23,7 @@ class Connection : public sqlgen::Connection {
 
  public:
   Connection(const Credentials& _credentials)
-      : credentials_(_credentials), conn_(make_conn(_credentials.to_str())) {}
+      : conn_(make_conn(_credentials.to_str())), credentials_(_credentials) {}
 
   static rfl::Result<Ref<sqlgen::Connection>> make(
       const Credentials& _credentials) noexcept;

@@ -32,21 +32,31 @@ class Connection : public sqlgen::Connection {
 
   Result<Nothing> commit() final { return execute("COMMIT;"); }
 
-  Result<Nothing> execute(const std::string& _sql) noexcept final;
+  Result<Nothing> execute(const std::string& _sql) noexcept final {
+    return error("TODO");
+  }
 
-  Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
+  Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
+    return error("TODO");
+  }
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final;
 
-  Result<Nothing> start_write(const dynamic::Insert& _stmt) final;
+  Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
+    return error("TODO");
+  }
 
-  Result<Nothing> end_write() final;
+  Result<Nothing> end_write() final { return error("TODO"); }
 
   Result<Nothing> write(
-      const std::vector<std::vector<std::optional<std::string>>>& _data) final;
+      const std::vector<std::vector<std::optional<std::string>>>& _data) final {
+    return error("TODO");
+  }
 
  private:
   static ConnPtr make_conn(const std::string& _conn_str);
+
+  std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept;
 
  private:
   ConnPtr conn_;

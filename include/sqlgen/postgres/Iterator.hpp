@@ -16,7 +16,7 @@ namespace sqlgen::postgres {
 
 class Iterator : public sqlgen::IteratorBase {
  public:
-  Iterator(const StmtPtr& _stmt, const ConnPtr& _conn);
+  Iterator();
 
   ~Iterator();
 

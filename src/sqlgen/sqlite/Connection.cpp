@@ -135,21 +135,6 @@ Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
       });
 }
 
-std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
-  return _stmt.visit([&](const auto& _s) -> std::string {
-    using S = std::remove_cvref_t<decltype(_s)>;
-    if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
-      return create_table_to_sql(_s);
-    } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
-      return insert_to_sql(_s);
-    } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
-      return select_from_to_sql(_s);
-    } else {
-      static_assert(rfl::always_false_v<S>, "Unsupported type.");
-    }
-  });
-}
-
 std::string Connection::select_from_to_sql(
     const dynamic::SelectFrom& _stmt) noexcept {
   using namespace std::ranges::views;
@@ -197,6 +182,21 @@ Result<Nothing> Connection::start_write(const dynamic::Insert& _stmt) {
   stmt_ = StmtPtr(p_stmt, &sqlite3_finalize);
 
   return Nothing{};
+}
+
+std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
+  return _stmt.visit([&](const auto& _s) -> std::string {
+    using S = std::remove_cvref_t<decltype(_s)>;
+    if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
+      return create_table_to_sql(_s);
+    } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
+      return insert_to_sql(_s);
+    } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
+      return select_from_to_sql(_s);
+    } else {
+      static_assert(rfl::always_false_v<S>, "Unsupported type.");
+    }
+  });
 }
 
 Result<Nothing> Connection::write(

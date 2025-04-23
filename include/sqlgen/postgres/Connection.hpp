@@ -63,6 +63,9 @@ class Connection : public sqlgen::Connection {
   std::string create_table_to_sql(
       const dynamic::CreateTable& _stmt) const noexcept;
 
+  std::vector<std::string> get_primary_keys(
+      const dynamic::CreateTable& _stmt) const noexcept;
+
   static ConnPtr make_conn(const std::string& _conn_str);
 
   std::string select_from_to_sql(

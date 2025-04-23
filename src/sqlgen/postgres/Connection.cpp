@@ -45,9 +45,37 @@ std::string Connection::create_table_to_sql(
   stream << "(";
   stream << internal::strings::join(
       ", ", internal::collect::vector(_stmt.columns | transform(col_to_sql)));
+
+  const auto primary_keys = get_primary_keys(_stmt);
+
+  if (primary_keys.size() != 0) {
+    stream << ", PRIMARY KEY (" << internal::strings::join(", ", primary_keys)
+           << ")";
+  }
+
   stream << ");";
 
   return stream.str();
+}
+
+std::vector<std::string> Connection::get_primary_keys(
+    const dynamic::CreateTable& _stmt) const noexcept {
+  using namespace std::ranges::views;
+
+  const auto is_primary_key = [](const auto& _col) -> bool {
+    return _col.type.visit(
+        [](const auto& _t) -> bool { return _t.properties.primary; });
+  };
+
+  const auto get_name = [](const auto& _col) { return _col.name; };
+
+  const auto wrap_in_quotes = [](const std::string& _name) -> std::string {
+    return "\"" + _name + "\"";
+  };
+
+  return internal::collect::vector(_stmt.columns | filter(is_primary_key) |
+                                   transform(get_name) |
+                                   transform(wrap_in_quotes));
 }
 
 rfl::Result<Ref<sqlgen::Connection>> Connection::make(

@@ -10,6 +10,46 @@
 
 namespace sqlgen::postgres {
 
+std::string Connection::add_not_null_if_necessary(
+    const dynamic::types::Properties& _p) const noexcept {
+  return std::string(_p.nullable ? "" : " NOT NULL");
+}
+
+std::string Connection::column_to_sql_definition(
+    const dynamic::Column& _col) const noexcept {
+  return "\"" + _col.name + "\"" + " " + type_to_sql(_col.type) +
+         add_not_null_if_necessary(
+             _col.type.visit([](const auto& _t) { return _t.properties; }));
+}
+
+std::string Connection::create_table_to_sql(
+    const dynamic::CreateTable& _stmt) const noexcept {
+  using namespace std::ranges::views;
+
+  const auto col_to_sql = [&](const auto& _col) {
+    return column_to_sql_definition(_col);
+  };
+
+  std::stringstream stream;
+  stream << "CREATE TABLE ";
+
+  if (_stmt.if_not_exists) {
+    stream << "IF NOT EXISTS ";
+  }
+
+  if (_stmt.table.schema) {
+    stream << "\"" << *_stmt.table.schema << "\".";
+  }
+  stream << "\"" << _stmt.table.name << "\" ";
+
+  stream << "(";
+  stream << internal::strings::join(
+      ", ", internal::collect::vector(_stmt.columns | transform(col_to_sql)));
+  stream << ");";
+
+  return stream.str();
+}
+
 rfl::Result<Ref<sqlgen::Connection>> Connection::make(
     const Credentials& _credentials) noexcept {
   try {
@@ -34,7 +74,7 @@ typename Connection::ConnPtr Connection::make_conn(
 }
 
 std::string Connection::select_from_to_sql(
-    const dynamic::SelectFrom& _stmt) noexcept {
+    const dynamic::SelectFrom& _stmt) const noexcept {
   using namespace std::ranges::views;
 
   const auto to_str = [](const auto& _col) -> std::string {
@@ -58,16 +98,52 @@ std::string Connection::select_from_to_sql(
 std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
   return _stmt.visit([&](const auto& _s) -> std::string {
     using S = std::remove_cvref_t<decltype(_s)>;
-    /*if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
+    if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
       return create_table_to_sql(_s);
-    } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
-      return insert_to_sql(_s);
-    } else*/
-    if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
+      /*} else if constexpr (std::is_same_v<S, dynamic::Insert>) {
+        return insert_to_sql(_s);
+      } else*/
+    } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
       return select_from_to_sql(_s);
     } else {
       return "TODO";
       // static_assert(rfl::always_false_v<S>, "Unsupported type.");
+    }
+  });
+}
+
+std::string Connection::type_to_sql(const dynamic::Type& _type) const noexcept {
+  return _type.visit([](const auto _t) -> std::string {
+    using T = std::remove_cvref_t<decltype(_t)>;
+    if constexpr (std::is_same_v<T, dynamic::types::Boolean>) {
+      return "BOOLEAN";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Int8> ||
+                         std::is_same_v<T, dynamic::types::Int16> ||
+                         std::is_same_v<T, dynamic::types::UInt8> ||
+                         std::is_same_v<T, dynamic::types::UInt16>) {
+      return "SMALLINT";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Int32> ||
+                         std::is_same_v<T, dynamic::types::UInt32>) {
+      return "INTEGER";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Int64> ||
+                         std::is_same_v<T, dynamic::types::UInt64>) {
+      return "BIGINT";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Float32>) {
+      return "REAL";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Float64>) {
+      return "DOUBLE PRECISION";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Text>) {
+      return "TEXT";
+    } else if constexpr (std::is_same_v<T, dynamic::types::VarChar>) {
+      return "VARCHAR(" + std::to_string(_t.length) + ")";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Timestamp>) {
+      return "TIMESTAMP";
+    } else if constexpr (std::is_same_v<T, dynamic::types::TimestampWithTZ>) {
+      return "TIMESTAMP WITH TIME ZONE";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Unknown>) {
+      return "TEXT";
+    } else {
+      static_assert(rfl::always_false_v<T>, "Not all cases were covered.");
     }
   });
 }

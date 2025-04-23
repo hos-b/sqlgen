@@ -54,9 +54,21 @@ class Connection : public sqlgen::Connection {
   }
 
  private:
+  std::string add_not_null_if_necessary(
+      const dynamic::types::Properties& _p) const noexcept;
+
+  std::string column_to_sql_definition(
+      const dynamic::Column& _col) const noexcept;
+
+  std::string create_table_to_sql(
+      const dynamic::CreateTable& _stmt) const noexcept;
+
   static ConnPtr make_conn(const std::string& _conn_str);
 
-  std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept;
+  std::string select_from_to_sql(
+      const dynamic::SelectFrom& _stmt) const noexcept;
+
+  std::string type_to_sql(const dynamic::Type& _type) const noexcept;
 
  private:
   ConnPtr conn_;

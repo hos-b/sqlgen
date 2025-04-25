@@ -43,15 +43,13 @@ class Connection : public sqlgen::Connection {
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final;
 
   Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
-    return error("TODO");
+    return execute(to_sql(_stmt));
   }
 
-  Result<Nothing> end_write() final { return error("TODO"); }
+  Result<Nothing> end_write() final;
 
   Result<Nothing> write(
-      const std::vector<std::vector<std::optional<std::string>>>& _data) final {
-    return error("TODO");
-  }
+      const std::vector<std::vector<std::optional<std::string>>>& _data) final;
 
  private:
   std::string add_not_null_if_necessary(
@@ -76,6 +74,9 @@ class Connection : public sqlgen::Connection {
 
   std::string select_from_to_sql(
       const dynamic::SelectFrom& _stmt) const noexcept;
+
+  std::string to_buffer(
+      const std::vector<std::optional<std::string>>& _line) const noexcept;
 
   std::string type_to_sql(const dynamic::Type& _type) const noexcept;
 

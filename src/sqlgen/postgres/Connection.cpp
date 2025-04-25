@@ -58,6 +58,17 @@ std::string Connection::create_table_to_sql(
   return stream.str();
 }
 
+Result<Nothing> Connection::end_write() {
+  if (PQputCopyEnd(conn_.get(), NULL) == -1) {
+    return error(PQerrorMessage(conn_.get()));
+  }
+  const auto res = PQgetResult(conn_.get());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    return error(PQerrorMessage(conn_.get()));
+  }
+  return Nothing{};
+}
+
 Result<Ref<PGresult>> Connection::exec(const std::string& _sql) const noexcept {
   const auto res = PQexec(conn_.get(), _sql.c_str());
 
@@ -142,6 +153,26 @@ std::string Connection::select_from_to_sql(
   return stream.str();
 }
 
+std::string Connection::to_buffer(
+    const std::vector<std::optional<std::string>>& _line) const noexcept {
+  using namespace std::ranges::views;
+
+  const auto edit_field =
+      [](const std::optional<std::string>& _field) -> std::string {
+    if (!_field) {
+      return "\e";
+    }
+    if (_field->find("\t") != std::string::npos) {
+      return "\a" + *_field + "\a";
+    }
+    return *_field;
+  };
+
+  return internal::strings::join(
+             "\t", internal::collect::vector(_line | transform(edit_field))) +
+         "\n";
+}
+
 std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
   return _stmt.visit([&](const auto& _s) -> std::string {
     using S = std::remove_cvref_t<decltype(_s)>;
@@ -191,6 +222,20 @@ std::string Connection::type_to_sql(const dynamic::Type& _type) const noexcept {
       static_assert(rfl::always_false_v<T>, "Not all cases were covered.");
     }
   });
+}
+
+Result<Nothing> Connection::write(
+    const std::vector<std::vector<std::optional<std::string>>>& _data) {
+  for (const auto& line : _data) {
+    const auto buffer = to_buffer(line);
+    const auto success = PQputCopyData(conn_.get(), buffer.c_str(),
+                                       static_cast<int>(buffer.size()));
+    if (success != 1) {
+      PQputCopyEnd(conn_.get(), NULL);
+      return error("Error occurred while writing data to postgres.");
+    }
+  }
+  return Nothing{};
 }
 
 }  // namespace sqlgen::postgres

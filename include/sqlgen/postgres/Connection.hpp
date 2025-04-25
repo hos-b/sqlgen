@@ -33,7 +33,7 @@ class Connection : public sqlgen::Connection {
   Result<Nothing> commit() final { return execute("COMMIT;"); }
 
   Result<Nothing> execute(const std::string& _sql) noexcept final {
-    return error("TODO");
+    return exec(_sql).transform([](auto&&) { return Nothing{}; });
   }
 
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
@@ -63,8 +63,14 @@ class Connection : public sqlgen::Connection {
   std::string create_table_to_sql(
       const dynamic::CreateTable& _stmt) const noexcept;
 
+  Result<Ref<PGresult>> exec(const std::string& _sql) const noexcept;
+
+  static std::string get_name(const dynamic::Column& _col) { return _col.name; }
+
   std::vector<std::string> get_primary_keys(
       const dynamic::CreateTable& _stmt) const noexcept;
+
+  std::string insert_to_sql(const dynamic::Insert& _stmt) const noexcept;
 
   static ConnPtr make_conn(const std::string& _conn_str);
 
@@ -72,6 +78,10 @@ class Connection : public sqlgen::Connection {
       const dynamic::SelectFrom& _stmt) const noexcept;
 
   std::string type_to_sql(const dynamic::Type& _type) const noexcept;
+
+  static std::string wrap_in_quotes(const std::string& _name) noexcept {
+    return "\"" + _name + "\"";
+  }
 
  private:
   ConnPtr conn_;

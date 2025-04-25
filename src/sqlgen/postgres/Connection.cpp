@@ -17,7 +17,7 @@ std::string Connection::add_not_null_if_necessary(
 
 std::string Connection::column_to_sql_definition(
     const dynamic::Column& _col) const noexcept {
-  return "\"" + _col.name + "\"" + " " + type_to_sql(_col.type) +
+  return wrap_in_quotes(_col.name) + " " + type_to_sql(_col.type) +
          add_not_null_if_necessary(
              _col.type.visit([](const auto& _t) { return _t.properties; }));
 }
@@ -38,9 +38,9 @@ std::string Connection::create_table_to_sql(
   }
 
   if (_stmt.table.schema) {
-    stream << "\"" << *_stmt.table.schema << "\".";
+    stream << wrap_in_quotes(*_stmt.table.schema) << ".";
   }
-  stream << "\"" << _stmt.table.name << "\" ";
+  stream << wrap_in_quotes(_stmt.table.name) << " ";
 
   stream << "(";
   stream << internal::strings::join(
@@ -58,6 +58,23 @@ std::string Connection::create_table_to_sql(
   return stream.str();
 }
 
+Result<Ref<PGresult>> Connection::exec(const std::string& _sql) const noexcept {
+  const auto res = PQexec(conn_.get(), _sql.c_str());
+
+  const auto status = PQresultStatus(res);
+
+  if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK &&
+      status != PGRES_COPY_IN) {
+    const auto err = error(PQresultErrorMessage(res));
+    PQclear(res);
+    return err;
+  }
+
+  PQclear(res);
+
+  return Ref<PGresult>::make(std::shared_ptr<PGresult>(res, PQclear));
+}
+
 std::vector<std::string> Connection::get_primary_keys(
     const dynamic::CreateTable& _stmt) const noexcept {
   using namespace std::ranges::views;
@@ -67,15 +84,21 @@ std::vector<std::string> Connection::get_primary_keys(
         [](const auto& _t) -> bool { return _t.properties.primary; });
   };
 
-  const auto get_name = [](const auto& _col) { return _col.name; };
-
-  const auto wrap_in_quotes = [](const std::string& _name) -> std::string {
-    return "\"" + _name + "\"";
-  };
-
   return internal::collect::vector(_stmt.columns | filter(is_primary_key) |
                                    transform(get_name) |
                                    transform(wrap_in_quotes));
+}
+
+std::string Connection::insert_to_sql(
+    const dynamic::Insert& _stmt) const noexcept {
+  using namespace std::ranges::views;
+  const auto schema = wrap_in_quotes(_stmt.table.schema.value_or("public"));
+  const auto table = wrap_in_quotes(_stmt.table.name);
+  const auto colnames = internal::strings::join(
+      ", ",
+      internal::collect::vector(_stmt.columns | transform(wrap_in_quotes)));
+  return "COPY " + schema + "." + table + "(" + colnames +
+         ") FROM STDIN WITH DELIMITER '\t' NULL '\e' QUOTE '\a';";
 }
 
 rfl::Result<Ref<sqlgen::Connection>> Connection::make(
@@ -105,20 +128,16 @@ std::string Connection::select_from_to_sql(
     const dynamic::SelectFrom& _stmt) const noexcept {
   using namespace std::ranges::views;
 
-  const auto to_str = [](const auto& _col) -> std::string {
-    return "\"" + _col.name + "\"";
-  };
-
   std::stringstream stream;
   stream << "SELECT ";
   stream << internal::strings::join(
-      ", ", internal::collect::vector(_stmt.columns | transform(to_str)));
-
+      ", ", internal::collect::vector(_stmt.columns | transform(get_name) |
+                                      transform(wrap_in_quotes)));
   stream << " FROM ";
   if (_stmt.table.schema) {
-    stream << "\"" << *_stmt.table.schema << "\".";
+    stream << wrap_in_quotes(*_stmt.table.schema) << ".";
   }
-  stream << "\"" << _stmt.table.name << "\";";
+  stream << wrap_in_quotes(_stmt.table.name) << ";";
 
   return stream.str();
 }
@@ -128,14 +147,12 @@ std::string Connection::to_sql(const dynamic::Statement& _stmt) noexcept {
     using S = std::remove_cvref_t<decltype(_s)>;
     if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
       return create_table_to_sql(_s);
-      /*} else if constexpr (std::is_same_v<S, dynamic::Insert>) {
-        return insert_to_sql(_s);
-      } else*/
+    } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
+      return insert_to_sql(_s);
     } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
       return select_from_to_sql(_s);
     } else {
-      return "TODO";
-      // static_assert(rfl::always_false_v<S>, "Unsupported type.");
+      static_assert(rfl::always_false_v<S>, "Unsupported type.");
     }
   });
 }

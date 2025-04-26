@@ -15,6 +15,7 @@
 #include "../dynamic/Column.hpp"
 #include "../dynamic/Statement.hpp"
 #include "Credentials.hpp"
+#include "exec.hpp"
 
 namespace sqlgen::postgres {
 
@@ -33,7 +34,7 @@ class Connection : public sqlgen::Connection {
   Result<Nothing> commit() final { return execute("COMMIT;"); }
 
   Result<Nothing> execute(const std::string& _sql) noexcept final {
-    return exec(_sql).transform([](auto&&) { return Nothing{}; });
+    return exec(conn_, _sql).transform([](auto&&) { return Nothing{}; });
   }
 
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final {
@@ -60,8 +61,6 @@ class Connection : public sqlgen::Connection {
 
   std::string create_table_to_sql(
       const dynamic::CreateTable& _stmt) const noexcept;
-
-  Result<Ref<PGresult>> exec(const std::string& _sql) const noexcept;
 
   static std::string get_name(const dynamic::Column& _col) { return _col.name; }
 

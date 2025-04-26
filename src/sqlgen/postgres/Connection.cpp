@@ -69,21 +69,6 @@ Result<Nothing> Connection::end_write() {
   return Nothing{};
 }
 
-Result<Ref<PGresult>> Connection::exec(const std::string& _sql) const noexcept {
-  const auto res = PQexec(conn_.get(), _sql.c_str());
-
-  const auto status = PQresultStatus(res);
-
-  if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK &&
-      status != PGRES_COPY_IN) {
-    const auto err = error(PQresultErrorMessage(res));
-    PQclear(res);
-    return err;
-  }
-
-  return Ref<PGresult>::make(std::shared_ptr<PGresult>(res, PQclear));
-}
-
 std::vector<std::string> Connection::get_primary_keys(
     const dynamic::CreateTable& _stmt) const noexcept {
   using namespace std::ranges::views;

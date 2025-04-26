@@ -1,8 +1,9 @@
 #ifndef SQLGEN_POSTGRES_ITERATOR_HPP_
 #define SQLGEN_POSTGRES_ITERATOR_HPP_
 
-#include <sqlite3.h>
+#include <libpq-fe.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -15,8 +16,14 @@
 namespace sqlgen::postgres {
 
 class Iterator : public sqlgen::IteratorBase {
+  using ConnPtr = Ref<PGconn>;
+
  public:
-  Iterator();
+  Iterator(const std::string& _sql, const ConnPtr& _conn);
+
+  Iterator(const Iterator& _other) = delete;
+
+  Iterator(Iterator&& _other) noexcept;
 
   ~Iterator();
 
@@ -29,7 +36,26 @@ class Iterator : public sqlgen::IteratorBase {
   Result<std::vector<std::vector<std::optional<std::string>>>> next(
       const size_t _batch_size) final;
 
+  Iterator& operator=(const Iterator& _other) = delete;
+
+  Iterator& operator=(Iterator&& _other) noexcept;
+
  private:
+  static std::string make_cursor_name() {
+    // TODO: Create unique cursor names.
+    return "sqlgen_cursor";
+  }
+
+ private:
+  /// A unique name to identify the cursor.
+  std::string cursor_name_;
+
+  /// The underlying postgres connection. We have this in here to prevent its
+  /// destruction for the lifetime of the iterator.
+  ConnPtr conn_;
+
+  /// Indicates that the iterator has been moved
+  bool moved_;
 };
 
 }  // namespace sqlgen::postgres

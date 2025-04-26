@@ -46,6 +46,9 @@ class Iterator : public sqlgen::IteratorBase {
     return "sqlgen_cursor";
   }
 
+  /// Shuts the iterator down.
+  void shutdown();
+
  private:
   /// A unique name to identify the cursor.
   std::string cursor_name_;
@@ -54,8 +57,8 @@ class Iterator : public sqlgen::IteratorBase {
   /// destruction for the lifetime of the iterator.
   ConnPtr conn_;
 
-  /// Indicates that the iterator has been moved
-  bool moved_;
+  /// Whether the end is reached.
+  bool end_;
 };
 
 }  // namespace sqlgen::postgres

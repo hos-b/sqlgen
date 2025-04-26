@@ -81,8 +81,6 @@ Result<Ref<PGresult>> Connection::exec(const std::string& _sql) const noexcept {
     return err;
   }
 
-  PQclear(res);
-
   return Ref<PGresult>::make(std::shared_ptr<PGresult>(res, PQclear));
 }
 

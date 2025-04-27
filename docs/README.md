@@ -8,15 +8,17 @@
 
 [Writing](writing.md) - How to write data to a database.
 
-[Result](result.md) - How sqlgen handles errors.
+[sqlgen::Result](result.md) - How sqlgen handles errors.
 
-[Timestamp](timestamp.md) - How timestamps work in sqlgen.
+[sqlgen::PrimaryKey](primary_key.md) - How to define primary keys in sqlgen.
 
-[Varchar](varchar.md) - How varchars work in sqlgen.
+[sqlgen::Timestamp](timestamp.md) - How timestamps work in sqlgen.
 
-[Flatten](flatten.md) - How to "inherit" fields from other structs.
+[sqlgen::Varchar](varchar.md) - How varchars work in sqlgen.
 
-[Literal](literal.md) - How to define fields that only allow for a fixed set of values.
+[sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs.
+
+[sqlgen::Literal](literal.md) - How to define fields that only allow for a fixed set of values.
 
 ## Supported databases
 

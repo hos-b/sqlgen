@@ -44,6 +44,9 @@ struct PrimaryKey {
   ~PrimaryKey() = default;
 
   /// Returns the underlying object.
+  ReflectionType& get() { return value_; }
+
+  /// Returns the underlying object.
   const ReflectionType& get() const { return value_; }
 
   /// Returns the underlying object.

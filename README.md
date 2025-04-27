@@ -7,11 +7,11 @@ sqlgen is closely integrated with our sister project [reflect-cpp](https://githu
 
 ## Simple example
 
-Here is how you create a simple sqlite database
+Here is how you connect to a PostgreSQL database
 and insert some data:
 
 ```cpp
-#include <sqlgen/sqlite.hpp>
+#include <sqlgen/postgres.hpp>
 
 struct People {
     std::string first_name;
@@ -24,7 +24,11 @@ const auto people = std::vector<People>({
            .last_name = "Simpson",
            .age = 45}});
 
-const auto conn = sqlgen::sqlite::connect("example.db");
+const auto credentials = sqlgen::postgres::Credentials{
+    .user = "...", .password = "...", ...
+};
+
+const auto conn = sqlgen::postgres::connect(credentials);
 
 // Will automatically create a table called 'People'
 // with the columns 'first_name', 'last_name' and 'age', 
@@ -41,9 +45,9 @@ and print the results as a JSON:
 
 ```cpp
 #include <rfl/json.hpp> // reflect-cpp
-#include <sqlgen/sqlite.hpp>
+#include <sqlgen/postgres.hpp>
 
-const auto conn = sqlgen::sqlite::connect("example.db");
+const auto conn = sqlgen::postgres::connect(credentials);
 
 const sqlgen::Result<std::vector<People>> result = 
     sqlgen::read<std::vector<People>>(conn);

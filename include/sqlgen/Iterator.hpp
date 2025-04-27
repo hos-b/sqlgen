@@ -40,17 +40,16 @@ class Iterator {
   Result<T>* operator->() const noexcept { return &(*current_batch_)[ix_]; }
 
   bool operator==(const End&) const noexcept {
-    return ix_ >= current_batch_->size() && it_->end();
+    return ix_ >= current_batch_->size();
   }
 
   bool operator!=(const End& _end) const noexcept { return !(*this == _end); }
 
   Iterator<T>& operator++() noexcept {
+    ++ix_;
     if (ix_ >= current_batch_->size() && !it_->end()) {
       current_batch_ = get_next_batch(it_);
       ix_ = 0;
-    } else {
-      ++ix_;
     }
     return *this;
   }

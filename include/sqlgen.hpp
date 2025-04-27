@@ -9,6 +9,7 @@
 #include "sqlgen/Range.hpp"
 #include "sqlgen/Ref.hpp"
 #include "sqlgen/Result.hpp"
+#include "sqlgen/Varchar.hpp"
 #include "sqlgen/read.hpp"
 #include "sqlgen/write.hpp"
 

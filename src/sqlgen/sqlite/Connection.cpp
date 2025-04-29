@@ -143,6 +143,10 @@ std::string Connection::select_from_to_sql(
     return "\"" + _col.name + "\"";
   };
 
+  const auto order_by_to_str = [](const auto& _w) -> std::string {
+    return "\"" + _w.column.name + "\"" + (_w.desc ? " DESC" : "");
+  };
+
   std::stringstream stream;
   stream << "SELECT ";
   stream << internal::strings::join(
@@ -152,7 +156,20 @@ std::string Connection::select_from_to_sql(
   if (_stmt.table.schema) {
     stream << "\"" << *_stmt.table.schema << "\".";
   }
-  stream << "\"" << _stmt.table.name << "\";";
+  stream << "\"" << _stmt.table.name << "\"";
+
+  if (_stmt.order_by) {
+    stream << " ORDER BY "
+           << internal::strings::join(
+                  ", ", internal::collect::vector(_stmt.order_by->columns |
+                                                  transform(order_by_to_str)));
+  }
+
+  if (_stmt.limit) {
+    stream << " LIMIT " << _stmt.limit->val;
+  }
+
+  stream << ";";
 
   return stream.str();
 }

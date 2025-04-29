@@ -122,7 +122,12 @@ std::string Connection::select_from_to_sql(
     const dynamic::SelectFrom& _stmt) const noexcept {
   using namespace std::ranges::views;
 
+  const auto order_by_to_str = [](const auto& _w) -> std::string {
+    return "\"" + _w.column.name + "\"" + (_w.desc ? " DESC" : "");
+  };
+
   std::stringstream stream;
+
   stream << "SELECT ";
   stream << internal::strings::join(
       ", ", internal::collect::vector(_stmt.columns | transform(get_name) |
@@ -131,7 +136,20 @@ std::string Connection::select_from_to_sql(
   if (_stmt.table.schema) {
     stream << wrap_in_quotes(*_stmt.table.schema) << ".";
   }
-  stream << wrap_in_quotes(_stmt.table.name) << ";";
+  stream << wrap_in_quotes(_stmt.table.name);
+
+  if (_stmt.order_by) {
+    stream << " ORDER BY "
+           << internal::strings::join(
+                  ", ", internal::collect::vector(_stmt.order_by->columns |
+                                                  transform(order_by_to_str)));
+  }
+
+  if (_stmt.limit) {
+    stream << " LIMIT " << _stmt.limit->val;
+  }
+
+  stream << ";";
 
   return stream.str();
 }

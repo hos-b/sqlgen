@@ -5,8 +5,8 @@
 
 namespace sqlgen {
 
-template <rfl::internal::StringLiteral _name>
-using Literal = rfl::Literal<_name>;
+template <rfl::internal::StringLiteral... _names>
+using Literal = rfl::Literal<_names...>;
 
 };  // namespace sqlgen
 

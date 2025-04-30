@@ -1,11 +1,14 @@
 #ifndef SQLGEN_READ_HPP_
 #define SQLGEN_READ_HPP_
 
+#include <type_traits>
+
 #include "Connection.hpp"
 #include "Range.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
 #include "internal/is_range.hpp"
+#include "transpilation/OrderBy.hpp"
 #include "transpilation/to_select_from.hpp"
 
 namespace sqlgen {
@@ -42,7 +45,7 @@ Result<ContainerType> read_impl(const Result<Ref<Connection>>& _res) {
       [](const auto& _conn) { return read_impl<ContainerType>(_conn); });
 }
 
-template <class ContainerType>
+template <class ContainerType, class OrderByType = Nothing>
 struct Read {
   Result<ContainerType> operator()(const auto& _conn) const noexcept {
     try {
@@ -51,10 +54,23 @@ struct Read {
       return error(e.what());
     }
   }
+
+  template <class... ColTypes>
+  auto order_by(const ColTypes&...) const noexcept {
+    static_assert(std::is_same_v<OrderByType, Nothing>,
+                  "order_by is already assigned.");
+    static_assert(sizeof...(ColTypes) != 0,
+                  "You must assign at least one column to order by.");
+    return Read<ContainerType,
+                transpilation::order_by_t<ContainerType,
+                                          std::remove_cvref_t<ColTypes>...>>{};
+  }
+
+  OrderByType order_by_;
 };
 
 template <class ContainerType>
-const auto read = Read<ContainerType>();
+const auto read = Read<ContainerType>{};
 
 }  // namespace sqlgen
 

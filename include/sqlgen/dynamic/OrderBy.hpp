@@ -7,11 +7,12 @@
 
 namespace sqlgen::dynamic {
 
+struct Wrapper {
+  Column column;
+  bool desc = false;
+};
+
 struct OrderBy {
-  struct Wrapper {
-    Column column;
-    bool desc = false;
-  };
   std::vector<Wrapper> columns;
 };
 

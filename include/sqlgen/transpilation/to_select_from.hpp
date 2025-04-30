@@ -8,15 +8,17 @@
 #include <utility>
 #include <vector>
 
+#include "../Result.hpp"
 #include "../dynamic/SelectFrom.hpp"
 #include "../dynamic/Table.hpp"
 #include "get_schema.hpp"
 #include "get_tablename.hpp"
 #include "make_columns.hpp"
+#include "to_order_by.hpp"
 
 namespace sqlgen::transpilation {
 
-template <class T>
+template <class T, class OrderByType = Nothing>
   requires std::is_class_v<std::remove_cvref_t<T>> &&
            std::is_aggregate_v<std::remove_cvref_t<T>>
 dynamic::SelectFrom to_select_from() {
@@ -28,7 +30,8 @@ dynamic::SelectFrom to_select_from() {
 
   return dynamic::SelectFrom{.table = dynamic::Table{.name = get_tablename<T>(),
                                                      .schema = get_schema<T>()},
-                             .columns = columns};
+                             .columns = columns,
+                             .order_by = to_order_by<OrderByType>()};
 }
 
 }  // namespace sqlgen::transpilation

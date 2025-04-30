@@ -13,11 +13,11 @@
 
 namespace sqlgen {
 
-template <class ContainerType>
+template <class ContainerType, class OrderByType>
 Result<ContainerType> read_impl(const Ref<Connection>& _conn) {
   if constexpr (internal::is_range_v<ContainerType>) {
     using ValueType = typename ContainerType::value_type::value_type;
-    const auto query = transpilation::to_select_from<ValueType>();
+    const auto query = transpilation::to_select_from<ValueType, OrderByType>();
     return _conn->read(query).transform(
         [](auto&& _it) { return ContainerType(_it); });
 
@@ -35,21 +35,23 @@ Result<ContainerType> read_impl(const Ref<Connection>& _conn) {
     };
 
     using ValueType = typename ContainerType::value_type;
-    return read_impl<Range<ValueType>>(_conn).and_then(to_container);
+    return read_impl<Range<ValueType>, OrderByType>(_conn).and_then(
+        to_container);
   }
 }
 
-template <class ContainerType>
+template <class ContainerType, class OrderByType>
 Result<ContainerType> read_impl(const Result<Ref<Connection>>& _res) {
-  return _res.and_then(
-      [](const auto& _conn) { return read_impl<ContainerType>(_conn); });
+  return _res.and_then([](const auto& _conn) {
+    return read_impl<ContainerType, OrderByType>(_conn);
+  });
 }
 
 template <class ContainerType, class OrderByType = Nothing>
 struct Read {
   Result<ContainerType> operator()(const auto& _conn) const noexcept {
     try {
-      return read_impl<ContainerType>(_conn);
+      return read_impl<ContainerType, OrderByType>(_conn);
     } catch (std::exception& e) {
       return error(e.what());
     }
@@ -61,9 +63,10 @@ struct Read {
                   "order_by is already assigned.");
     static_assert(sizeof...(ColTypes) != 0,
                   "You must assign at least one column to order by.");
-    return Read<ContainerType,
-                transpilation::order_by_t<ContainerType,
-                                          std::remove_cvref_t<ColTypes>...>>{};
+    return Read<
+        ContainerType,
+        transpilation::order_by_t<typename ContainerType::value_type,  // TODO
+                                  std::remove_cvref_t<ColTypes>...>>{};
   }
 
   OrderByType order_by_;

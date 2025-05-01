@@ -11,6 +11,8 @@
 #include "sqlgen/Result.hpp"
 #include "sqlgen/Varchar.hpp"
 #include "sqlgen/col.hpp"
+#include "sqlgen/limit.hpp"
+#include "sqlgen/order_by.hpp"
 #include "sqlgen/read.hpp"
 #include "sqlgen/write.hpp"
 

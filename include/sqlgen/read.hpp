@@ -8,16 +8,18 @@
 #include "Ref.hpp"
 #include "Result.hpp"
 #include "internal/is_range.hpp"
-#include "transpilation/OrderBy.hpp"
 #include "transpilation/to_select_from.hpp"
+#include "transpilation/value_t.hpp"
 
 namespace sqlgen {
 
-template <class ContainerType, class OrderByType>
-Result<ContainerType> read_impl(const Ref<Connection>& _conn) {
+template <class ContainerType, class OrderByType, class LimitType>
+Result<ContainerType> read_impl(const Ref<Connection>& _conn,
+                                const LimitType& _limit) {
+  using ValueType = transpilation::value_t<ContainerType>;
   if constexpr (internal::is_range_v<ContainerType>) {
-    using ValueType = typename ContainerType::value_type::value_type;
-    const auto query = transpilation::to_select_from<ValueType, OrderByType>();
+    const auto query =
+        transpilation::to_select_from<ValueType, OrderByType>(_limit);
     return _conn->read(query).transform(
         [](auto&& _it) { return ContainerType(_it); });
 
@@ -34,42 +36,33 @@ Result<ContainerType> read_impl(const Ref<Connection>& _conn) {
       return container;
     };
 
-    using ValueType = typename ContainerType::value_type;
-    return read_impl<Range<ValueType>, OrderByType>(_conn).and_then(
-        to_container);
+    return read_impl<Range<ValueType>, OrderByType>(_conn, _limit)
+        .and_then(to_container);
   }
 }
 
-template <class ContainerType, class OrderByType>
-Result<ContainerType> read_impl(const Result<Ref<Connection>>& _res) {
-  return _res.and_then([](const auto& _conn) {
-    return read_impl<ContainerType, OrderByType>(_conn);
+template <class ContainerType, class OrderByType, class LimitType>
+Result<ContainerType> read_impl(const Result<Ref<Connection>>& _res,
+                                const LimitType& _limit) {
+  return _res.and_then([&](const auto& _conn) {
+    return read_impl<ContainerType, OrderByType>(_conn, _limit);
   });
 }
 
-template <class ContainerType, class OrderByType = Nothing>
+template <class ContainerType, class OrderByType = Nothing,
+          class LimitType = Nothing>
 struct Read {
   Result<ContainerType> operator()(const auto& _conn) const noexcept {
     try {
-      return read_impl<ContainerType, OrderByType>(_conn);
+      return read_impl<ContainerType, OrderByType>(_conn, limit_);
     } catch (std::exception& e) {
       return error(e.what());
     }
   }
 
-  template <class... ColTypes>
-  auto order_by(const ColTypes&...) const noexcept {
-    static_assert(std::is_same_v<OrderByType, Nothing>,
-                  "order_by is already assigned.");
-    static_assert(sizeof...(ColTypes) != 0,
-                  "You must assign at least one column to order by.");
-    return Read<
-        ContainerType,
-        transpilation::order_by_t<typename ContainerType::value_type,  // TODO
-                                  std::remove_cvref_t<ColTypes>...>>{};
-  }
-
   OrderByType order_by_;
+
+  LimitType limit_;
 };
 
 template <class ContainerType>

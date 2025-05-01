@@ -6,7 +6,7 @@
 #include <sqlgen/sqlite.hpp>
 #include <vector>
 
-namespace test_order_by {
+namespace test_limit {
 
 struct Person {
   sqlgen::PrimaryKey<uint32_t> id;
@@ -15,7 +15,7 @@ struct Person {
   int age;
 };
 
-TEST(sqlite, test_order_by) {
+TEST(sqlite, test_limit) {
   const auto people1 = std::vector<Person>(
       {Person{
            .id = 0, .first_name = "Homer", .last_name = "Simpson", .age = 45},
@@ -32,15 +32,15 @@ TEST(sqlite, test_order_by) {
 
   using namespace sqlgen;
 
-  const auto query = sqlgen::read<std::vector<Person>> |
-                     order_by(col<"age">, col<"first_name">.desc());
+  const auto query =
+      sqlgen::read<std::vector<Person>> | order_by(col<"age">) | limit(2);
 
   const auto people2 = query(conn).value();
 
   const std::string expected =
-      R"([{"id":3,"first_name":"Maggie","last_name":"Simpson","age":0},{"id":2,"first_name":"Lisa","last_name":"Simpson","age":8},{"id":4,"first_name":"Hugo","last_name":"Simpson","age":10},{"id":1,"first_name":"Bart","last_name":"Simpson","age":10},{"id":0,"first_name":"Homer","last_name":"Simpson","age":45}])";
+      R"([{"id":3,"first_name":"Maggie","last_name":"Simpson","age":0},{"id":2,"first_name":"Lisa","last_name":"Simpson","age":8}])";
 
   EXPECT_EQ(rfl::json::write(people2), expected);
 }
 
-}  // namespace test_order_by
+}  // namespace test_limit

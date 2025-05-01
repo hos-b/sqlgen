@@ -1,9 +1,7 @@
 #ifndef SQLGEN_DYNAMIC_LIMIT_HPP_
 #define SQLGEN_DYNAMIC_LIMIT_HPP_
 
-#include <vector>
-
-#include "Column.hpp"
+#include <cstddef>
 
 namespace sqlgen::dynamic {
 

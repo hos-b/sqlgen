@@ -5,7 +5,7 @@
 
 #include "../Result.hpp"
 #include "../dynamic/OrderBy.hpp"
-#include "OrderBy.hpp"
+#include "order_by_t.hpp"
 
 namespace sqlgen::transpilation {
 

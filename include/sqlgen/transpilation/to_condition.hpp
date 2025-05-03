@@ -29,9 +29,9 @@ struct ToCondition<T, conditions::And<CondType1, CondType2>> {
     return dynamic::Condition{
         .val = dynamic::Condition::And{
             .cond1 = Ref<dynamic::Condition>::make(
-                ToCondition<T, std::remove_cvref_t<CondType1>>{}(_cond.lhs)),
+                ToCondition<T, std::remove_cvref_t<CondType1>>{}(_cond.cond1)),
             .cond2 = Ref<dynamic::Condition>::make(
-                ToCondition<T, std::remove_cvref_t<CondType2>>{}(_cond.rhs)),
+                ToCondition<T, std::remove_cvref_t<CondType2>>{}(_cond.cond2)),
         }};
   }
 };
@@ -43,9 +43,9 @@ struct ToCondition<T, conditions::Or<CondType1, CondType2>> {
     return dynamic::Condition{
         .val = dynamic::Condition::Or{
             .cond1 = Ref<dynamic::Condition>::make(
-                ToCondition<T, std::remove_cvref_t<CondType1>>{}(_cond.lhs)),
+                ToCondition<T, std::remove_cvref_t<CondType1>>{}(_cond.cond1)),
             .cond2 = Ref<dynamic::Condition>::make(
-                ToCondition<T, std::remove_cvref_t<CondType2>>{}(_cond.rhs)),
+                ToCondition<T, std::remove_cvref_t<CondType2>>{}(_cond.cond2)),
         }};
   }
 };

@@ -5,8 +5,8 @@ namespace sqlgen::transpilation::conditions {
 
 template <class CondType1, class CondType2>
 struct And {
-  CondType1 lhs;
-  CondType2 rhs;
+  CondType1 cond1;
+  CondType2 cond2;
 };
 
 template <class OpType1, class OpType2>
@@ -47,8 +47,8 @@ struct LesserThan {
 
 template <class CondType1, class CondType2>
 struct Or {
-  CondType1 lhs;
-  CondType2 rhs;
+  CondType1 cond1;
+  CondType2 cond2;
 };
 
 }  // namespace sqlgen::transpilation::conditions

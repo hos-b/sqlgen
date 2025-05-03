@@ -12,17 +12,17 @@ struct Condition {
 };
 
 template <class C1, class C2>
-auto operator&&(const Condition<C1>& _lhs, const Condition<C2>& _rhs) {
+auto operator&&(const Condition<C1>& _cond1, const Condition<C2>& _cond2) {
   return Condition<conditions::And<C1, C2>>{
-      .condition = conditions::And<C1, C2>{.lhs = _lhs.condition,
-                                           .rhs = _rhs.condition}};
+      .condition = conditions::And<C1, C2>{.cond1 = _cond1.condition,
+                                           .cond2 = _cond2.condition}};
 }
 
 template <class C1, class C2>
-auto operator||(const Condition<C1>& _lhs, const Condition<C2>& _rhs) {
+auto operator||(const Condition<C1>& _cond1, const Condition<C2>& _cond2) {
   return Condition<conditions::Or<C1, C2>>{
-      .condition =
-          conditions::Or<C1, C2>{.lhs = _lhs.condition, .rhs = _rhs.condition}};
+      .condition = conditions::Or<C1, C2>{.cond1 = _cond1.condition,
+                                          .cond2 = _cond2.condition}};
 }
 
 }  // namespace sqlgen::transpilation

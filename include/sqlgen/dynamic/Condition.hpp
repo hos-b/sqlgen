@@ -11,8 +11,8 @@ namespace sqlgen::dynamic {
 
 struct Condition {
   struct And {
-    Ref<Condition> op1;
-    Ref<Condition> op2;
+    Ref<Condition> cond1;
+    Ref<Condition> cond2;
   };
 
   struct Equals {
@@ -46,15 +46,15 @@ struct Condition {
   };
 
   struct Or {
-    Ref<Condition> op1;
-    Ref<Condition> op2;
+    Ref<Condition> cond1;
+    Ref<Condition> cond2;
   };
 
   using ReflectionType =
       rfl::TaggedUnion<"what", And, Equals, GreaterEqual, GreaterThan,
                        NotEquals, LesserEqual, LesserThan, Or>;
 
-  ReflectionType reflection() const { return val; }
+  const ReflectionType& reflection() const { return val; }
 
   ReflectionType val;
 };

@@ -2,6 +2,7 @@
 #define SQLGEN_COL_HPP_
 
 #include <rfl.hpp>
+#include <string>
 
 #include "transpilation/Condition.hpp"
 #include "transpilation/Desc.hpp"
@@ -16,6 +17,9 @@ struct Col {
 
   /// Signals to order_by that this column is to be sorted in descending order.
   auto desc() const noexcept { return transpilation::Desc<Col<_name>>{}; }
+
+  /// Returns the column name.
+  std::string name() const noexcept { return Name().str(); }
 };
 
 template <rfl::internal::StringLiteral _name>

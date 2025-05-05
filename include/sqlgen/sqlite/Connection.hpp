@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <rfl.hpp>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -46,9 +47,22 @@ class Connection : public sqlgen::Connection {
       const std::vector<std::vector<std::optional<std::string>>>& _data) final;
 
  private:
+  /// Transforms a column or value to SQL.
+  std::string column_or_value_to_sql(
+      const dynamic::ColumnOrValue& _col) const noexcept;
+
   /// Transforms a dynamic::Column to an SQL string that defines the column in
   /// a CREATE TABLE statement.
   std::string column_to_sql_definition(const dynamic::Column& _col) noexcept;
+
+  /// Transforms a condition to SQL.
+  std::string condition_to_sql(
+      const dynamic::Condition& _condition) const noexcept;
+
+  /// Transforms a partilar condition to SQL.
+  template <class ConditionType>
+  std::string condition_to_sql_impl(
+      const ConditionType& _condition) const noexcept;
 
   /// Transforms a CreateTable Statement to an SQL string.
   std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
@@ -76,6 +90,51 @@ class Connection : public sqlgen::Connection {
   /// The underlying sqlite3 connection.
   ConnPtr conn_;
 };
+
+template <class ConditionType>
+std::string Connection::condition_to_sql_impl(
+    const ConditionType& _condition) const noexcept {
+  using C = std::remove_cvref_t<ConditionType>;
+  std::stringstream stream;
+
+  if constexpr (std::is_same_v<C, dynamic::Condition::And>) {
+    stream << "(" << condition_to_sql(*_condition.cond1) << ") AND ("
+           << condition_to_sql(*_condition.cond2) << ")";
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::Equal>) {
+    stream << column_or_value_to_sql(_condition.op1) << " = "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::GreaterEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " >= " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::GreaterThan>) {
+    stream << column_or_value_to_sql(_condition.op1) << " > "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::NotEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " != " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::LesserEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " <= " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::LesserThan>) {
+    stream << column_or_value_to_sql(_condition.op1) << " < "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::Or>) {
+    stream << "(" << condition_to_sql(*_condition.cond1) << ") OR ("
+           << condition_to_sql(*_condition.cond2) << ")";
+
+  } else {
+    static_assert(rfl::always_false_v<C>, "Not all cases where covered.");
+  }
+
+  return stream.str();
+}
 
 }  // namespace sqlgen::sqlite
 

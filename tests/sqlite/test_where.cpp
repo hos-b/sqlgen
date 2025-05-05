@@ -32,9 +32,10 @@ TEST(sqlite, test_where) {
 
   using namespace sqlgen;
 
-  const auto query = sqlgen::read<std::vector<Person>> |
-                     where(col<"first_name"> != col<"last_name">) |
-                     order_by(col<"age">, col<"first_name">.desc());
+  const auto query =
+      sqlgen::read<std::vector<Person>> |
+      where(col<"first_name"> != col<"last_name"> or col<"id"> != col<"age">) |
+      order_by(col<"age">, col<"first_name">.desc());
 
   const auto people2 = query(conn).value();
 

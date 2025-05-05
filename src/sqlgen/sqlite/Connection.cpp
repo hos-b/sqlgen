@@ -10,11 +10,38 @@
 
 namespace sqlgen::sqlite {
 
+std::string Connection::column_or_value_to_sql(
+    const dynamic::ColumnOrValue& _col) const noexcept {
+  const auto handle_value = [](const auto& _v) -> std::string {
+    using Type = std::remove_cvref_t<decltype(_v)>;
+    if constexpr (std::is_same_v<Type, dynamic::String>) {
+      return "'" + _v.val + "'";
+    } else {
+      return std::to_string(_v.val);
+    }
+  };
+
+  return _col.visit([&](const auto& _c) -> std::string {
+    using Type = std::remove_cvref_t<decltype(_c)>;
+    if constexpr (std::is_same_v<Type, dynamic::Column>) {
+      return "\"" + _c.name + "\"";
+    } else {
+      return _c.visit(handle_value);
+    }
+  });
+}
+
 std::string Connection::column_to_sql_definition(
     const dynamic::Column& _col) noexcept {
   return "\"" + _col.name + "\"" + " " + type_to_sql(_col.type) +
          properties_to_sql(
              _col.type.visit([](const auto& _t) { return _t.properties; }));
+}
+
+std::string Connection::condition_to_sql(
+    const dynamic::Condition& _cond) const noexcept {
+  return _cond.val.visit(
+      [&](const auto& _c) { return condition_to_sql_impl(_c); });
 }
 
 std::string Connection::create_table_to_sql(
@@ -116,6 +143,8 @@ std::string Connection::properties_to_sql(
 Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
   const auto sql = to_sql(_query);
 
+  std::cout << sql << std::endl;
+
   sqlite3_stmt* p_stmt = nullptr;
 
   sqlite3_prepare(conn_.get(), /* Database handle */
@@ -157,6 +186,10 @@ std::string Connection::select_from_to_sql(
     stream << "\"" << *_stmt.table.schema << "\".";
   }
   stream << "\"" << _stmt.table.name << "\"";
+
+  if (_stmt.where) {
+    stream << " WHERE " << condition_to_sql(*_stmt.where);
+  }
 
   if (_stmt.order_by) {
     stream << " ORDER BY "

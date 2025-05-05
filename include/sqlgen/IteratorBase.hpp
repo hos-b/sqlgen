@@ -11,6 +11,8 @@ namespace sqlgen {
 
 /// Abstract base class for an iterator to be returned by Connection::read(...).
 struct IteratorBase {
+  virtual ~IteratorBase() = default;
+
   /// Whether the end of the available data has been reached.
   virtual bool end() const = 0;
 

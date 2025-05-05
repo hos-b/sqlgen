@@ -13,17 +13,21 @@ namespace sqlgen {
 template <class... ColTypes>
 struct OrderBy {};
 
-template <class ContainerType, class OrderByType, class... ColTypes>
-auto operator|(const Read<ContainerType, OrderByType>&,
+template <class ContainerType, class WhereType, class OrderByType,
+          class LimitType, class... ColTypes>
+auto operator|(const Read<ContainerType, WhereType, OrderByType, LimitType>& _r,
                const OrderBy<ColTypes...>&) {
   static_assert(std::is_same_v<OrderByType, Nothing>,
                 "You cannot call order_by twice (but you can order by more "
                 "than one column).");
+  static_assert(std::is_same_v<LimitType, Nothing>,
+                "Limit must be called after order_by.");
   static_assert(sizeof...(ColTypes) != 0,
                 "You must assign at least one column to order by.");
-  return Read<ContainerType,
+  return Read<ContainerType, WhereType,
               transpilation::order_by_t<transpilation::value_t<ContainerType>,
-                                        std::remove_cvref_t<ColTypes>...>>{};
+                                        std::remove_cvref_t<ColTypes>...>,
+              LimitType>{.where_ = _r.where_};
 }
 
 template <class... ColTypes>

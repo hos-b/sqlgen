@@ -14,6 +14,7 @@
 #include "sqlgen/limit.hpp"
 #include "sqlgen/order_by.hpp"
 #include "sqlgen/read.hpp"
+#include "sqlgen/where.hpp"
 #include "sqlgen/write.hpp"
 
 #endif

@@ -10,10 +10,16 @@ struct And {
 };
 
 template <class OpType1, class OpType2>
-struct Equals {
+struct Equal {
   OpType1 op1;
   OpType2 op2;
 };
+
+template <class OpType1, class OpType2>
+auto equal(const OpType1& _op1, const OpType2& _op2) {
+  return Equal<std::remove_cvref_t<OpType1>, std::remove_cvref_t<OpType2>>{
+      .op1 = _op1, .op2 = _op2};
+}
 
 template <class OpType1, class OpType2>
 struct GreaterEqual {
@@ -22,16 +28,34 @@ struct GreaterEqual {
 };
 
 template <class OpType1, class OpType2>
+auto greater_equal(const OpType1& _op1, const OpType2& _op2) {
+  return GreaterEqual<std::remove_cvref_t<OpType1>,
+                      std::remove_cvref_t<OpType2>>{.op1 = _op1, .op2 = _op2};
+}
+
+template <class OpType1, class OpType2>
 struct GreaterThan {
   OpType1 op1;
   OpType2 op2;
 };
 
 template <class OpType1, class OpType2>
-struct NotEquals {
+auto greater_than(const OpType1& _op1, const OpType2& _op2) {
+  return GreaterThan<std::remove_cvref_t<OpType1>,
+                     std::remove_cvref_t<OpType2>>{.op1 = _op1, .op2 = _op2};
+}
+
+template <class OpType1, class OpType2>
+struct NotEqual {
   OpType1 op1;
   OpType2 op2;
 };
+
+template <class OpType1, class OpType2>
+auto not_equal(const OpType1& _op1, const OpType2& _op2) {
+  return NotEqual<std::remove_cvref_t<OpType1>, std::remove_cvref_t<OpType2>>{
+      .op1 = _op1, .op2 = _op2};
+}
 
 template <class OpType1, class OpType2>
 struct LesserEqual {
@@ -40,10 +64,22 @@ struct LesserEqual {
 };
 
 template <class OpType1, class OpType2>
+auto lesser_equal(const OpType1& _op1, const OpType2& _op2) {
+  return LesserEqual<std::remove_cvref_t<OpType1>,
+                     std::remove_cvref_t<OpType2>>{.op1 = _op1, .op2 = _op2};
+}
+
+template <class OpType1, class OpType2>
 struct LesserThan {
   OpType1 op1;
   OpType2 op2;
 };
+
+template <class OpType1, class OpType2>
+auto lesser_than(const OpType1& _op1, const OpType2& _op2) {
+  return LesserThan<std::remove_cvref_t<OpType1>, std::remove_cvref_t<OpType2>>{
+      .op1 = _op1, .op2 = _op2};
+}
 
 template <class CondType1, class CondType2>
 struct Or {

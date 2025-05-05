@@ -15,7 +15,7 @@ struct Condition {
     Ref<Condition> cond2;
   };
 
-  struct Equals {
+  struct Equal {
     Column op1;
     ColumnOrValue op2;
   };
@@ -30,7 +30,7 @@ struct Condition {
     ColumnOrValue op2;
   };
 
-  struct NotEquals {
+  struct NotEqual {
     Column op1;
     ColumnOrValue op2;
   };
@@ -51,8 +51,8 @@ struct Condition {
   };
 
   using ReflectionType =
-      rfl::TaggedUnion<"what", And, Equals, GreaterEqual, GreaterThan,
-                       NotEquals, LesserEqual, LesserThan, Or>;
+      rfl::TaggedUnion<"what", And, Equal, GreaterEqual, GreaterThan, NotEqual,
+                       LesserEqual, LesserThan, Or>;
 
   const ReflectionType& reflection() const { return val; }
 

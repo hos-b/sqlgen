@@ -36,6 +36,78 @@ struct ToCondition<T, conditions::And<CondType1, CondType2>> {
   }
 };
 
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::Equal<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::Equal<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::Equal{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::GreaterEqual<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::GreaterEqual<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::GreaterEqual{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::GreaterThan<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::GreaterThan<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::GreaterThan{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::LesserEqual<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::LesserEqual<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::LesserEqual{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::LesserThan<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::LesserThan<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::LesserThan{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
+template <class T, rfl::internal::StringLiteral _name1,
+          rfl::internal::StringLiteral _name2>
+struct ToCondition<T, conditions::NotEqual<Col<_name1>, Col<_name2>>> {
+  dynamic::Condition operator()(
+      const conditions::NotEqual<Col<_name1>, Col<_name2>>& _cond) const {
+    return dynamic::Condition{.val = dynamic::Condition::NotEqual{
+                                  .op1 = dynamic::Column{.name = _name1.str()},
+                                  .op2 = dynamic::Column{.name = _name2.str()},
+                              }};
+  }
+};
+
 template <class T, class CondType1, class CondType2>
 struct ToCondition<T, conditions::Or<CondType1, CondType2>> {
   dynamic::Condition operator()(

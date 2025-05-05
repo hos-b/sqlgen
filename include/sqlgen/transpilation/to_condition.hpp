@@ -1,6 +1,7 @@
 #ifndef SQLGEN_TRANSPILATION_TO_CONDITION_HPP_
 #define SQLGEN_TRANSPILATION_TO_CONDITION_HPP_
 
+#include <optional>
 #include <type_traits>
 #include <vector>
 
@@ -122,8 +123,15 @@ struct ToCondition<T, conditions::Or<CondType1, CondType2>> {
   }
 };
 
+template <class T>
+struct ToCondition<T, Nothing> {
+  std::optional<dynamic::Condition> operator()(const Nothing&) const {
+    return std::nullopt;
+  }
+};
+
 template <class T, class ConditionType>
-dynamic::Condition to_condition(const ConditionType& _cond) {
+std::optional<dynamic::Condition> to_condition(const ConditionType& _cond) {
   return ToCondition<T, std::remove_cvref_t<ConditionType>>{}(_cond);
 }
 

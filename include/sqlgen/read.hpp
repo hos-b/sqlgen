@@ -21,7 +21,8 @@ Result<ContainerType> read_impl(const Ref<Connection>& _conn,
   using ValueType = transpilation::value_t<ContainerType>;
   if constexpr (internal::is_range_v<ContainerType>) {
     const auto query =
-        transpilation::to_select_from<ValueType, OrderByType>(_limit);
+        transpilation::to_select_from<ValueType, WhereType, OrderByType,
+                                      LimitType>(_where, _limit);
     return _conn->read(query).transform(
         [](auto&& _it) { return ContainerType(_it); });
 

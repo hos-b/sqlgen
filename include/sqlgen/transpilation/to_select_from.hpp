@@ -14,26 +14,31 @@
 #include "get_schema.hpp"
 #include "get_tablename.hpp"
 #include "make_columns.hpp"
+#include "to_condition.hpp"
 #include "to_limit.hpp"
 #include "to_order_by.hpp"
 
 namespace sqlgen::transpilation {
 
-template <class T, class OrderByType = Nothing, class LimitType = Nothing>
+template <class T, class WhereType = Nothing, class OrderByType = Nothing,
+          class LimitType = Nothing>
   requires std::is_class_v<std::remove_cvref_t<T>> &&
            std::is_aggregate_v<std::remove_cvref_t<T>>
-dynamic::SelectFrom to_select_from(const LimitType& _limit = LimitType{}) {
+dynamic::SelectFrom to_select_from(const WhereType& _where = WhereType{},
+                                   const LimitType& _limit = LimitType{}) {
   using NamedTupleType = rfl::named_tuple_t<std::remove_cvref_t<T>>;
   using Fields = typename NamedTupleType::Fields;
 
   const auto columns = make_columns<Fields>(
       std::make_integer_sequence<int, rfl::tuple_size_v<Fields>>());
 
-  return dynamic::SelectFrom{.table = dynamic::Table{.name = get_tablename<T>(),
-                                                     .schema = get_schema<T>()},
-                             .columns = columns,
-                             .order_by = to_order_by<OrderByType>(),
-                             .limit = to_limit(_limit)};
+  return dynamic::SelectFrom{
+      .table =
+          dynamic::Table{.name = get_tablename<T>(), .schema = get_schema<T>()},
+      .columns = columns,
+      .where = to_condition<std::remove_cvref_t<T>>(_where),
+      .order_by = to_order_by<OrderByType>(),
+      .limit = to_limit(_limit)};
 }
 
 }  // namespace sqlgen::transpilation

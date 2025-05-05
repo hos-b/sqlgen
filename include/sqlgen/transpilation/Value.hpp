@@ -12,7 +12,7 @@ struct Value {
 
 template <class T>
 auto make_value(T&& _t) {
-  return Value<std::remove_cvref_t<T>>{.val_ = _t};
+  return Value<std::remove_cvref_t<T>>{.val = _t};
 }
 
 }  // namespace sqlgen::transpilation

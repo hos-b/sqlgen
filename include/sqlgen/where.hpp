@@ -26,7 +26,7 @@ auto operator|(const Read<ContainerType, WhereType, OrderByType, LimitType>& _r,
                 "You must call order_by(...) after where(...).");
   static_assert(std::is_same_v<LimitType, Nothing>,
                 "You must call limit(...) after where(...).");
-  return Read<ContainerType, ConditionType, OrderByType, Limit>{
+  return Read<ContainerType, ConditionType, OrderByType, LimitType>{
       .where_ = _where.condition};
 }
 

@@ -6,13 +6,14 @@
 #include <vector>
 
 #include "Type.hpp"
+#include "types.hpp"
 
 namespace sqlgen::dynamic {
 
 struct Column {
   std::optional<std::string> alias;
   std::string name;
-  Type type;
+  Type type = types::Unknown{};
 };
 
 }  // namespace sqlgen::dynamic

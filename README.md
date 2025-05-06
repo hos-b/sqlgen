@@ -49,8 +49,17 @@ and print the results as a JSON:
 
 const auto conn = sqlgen::postgres::connect(credentials);
 
-const sqlgen::Result<std::vector<People>> result = 
-    sqlgen::read<std::vector<People>>(conn);
+using namespace sqlgen;
+
+// Query that returns the 100 youngest children.
+const auto get_children = sqlgen::read<std::vector<Person>> |
+                          where("age"_c < 18) |
+                          order_by("age"_c) |
+                          limit(100);
+
+// Actually executes the query.
+// Returns sqlgen::Result<std::vector<People>>
+const auto result = get_children(conn);
 
 if (result) {
     std::cout << rfl::json::write(*result) << std::endl;

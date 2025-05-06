@@ -33,7 +33,7 @@ TEST(sqlite, test_order_by) {
   using namespace sqlgen;
 
   const auto query = sqlgen::read<std::vector<Person>> |
-                     order_by(col<"age">, col<"first_name">.desc());
+                     order_by("age"_c, "first_name"_c.desc());
 
   const auto people2 = query(conn).value();
 

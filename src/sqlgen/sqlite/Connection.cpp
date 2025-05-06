@@ -143,8 +143,6 @@ std::string Connection::properties_to_sql(
 Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
   const auto sql = to_sql(_query);
 
-  std::cout << sql << std::endl;
-
   sqlite3_stmt* p_stmt = nullptr;
 
   sqlite3_prepare(conn_.get(), /* Database handle */

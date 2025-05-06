@@ -32,15 +32,14 @@ TEST(sqlite, test_where) {
 
   using namespace sqlgen;
 
-  const auto query =
-      sqlgen::read<std::vector<Person>> |
-      where(col<"first_name"> != col<"last_name"> or col<"id"> != col<"age">) |
-      order_by(col<"age">, col<"first_name">.desc());
+  const auto query = sqlgen::read<std::vector<Person>> |
+                     where("age"_c < 18 and "first_name"_c != "Hugo") |
+                     order_by("age"_c);
 
   const auto people2 = query(conn).value();
 
   const std::string expected =
-      R"([{"id":3,"first_name":"Maggie","last_name":"Simpson","age":0},{"id":2,"first_name":"Lisa","last_name":"Simpson","age":8},{"id":4,"first_name":"Hugo","last_name":"Simpson","age":10},{"id":1,"first_name":"Bart","last_name":"Simpson","age":10},{"id":0,"first_name":"Homer","last_name":"Simpson","age":45}])";
+      R"([{"id":3,"first_name":"Maggie","last_name":"Simpson","age":0},{"id":2,"first_name":"Lisa","last_name":"Simpson","age":8},{"id":1,"first_name":"Bart","last_name":"Simpson","age":10}])";
 
   EXPECT_EQ(rfl::json::write(people2), expected);
 }

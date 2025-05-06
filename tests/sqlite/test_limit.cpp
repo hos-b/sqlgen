@@ -33,7 +33,7 @@ TEST(sqlite, test_limit) {
   using namespace sqlgen;
 
   const auto query =
-      sqlgen::read<std::vector<Person>> | order_by(col<"age">) | limit(2);
+      sqlgen::read<std::vector<Person>> | order_by("age"_c) | limit(2);
 
   const auto people2 = query(conn).value();
 

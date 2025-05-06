@@ -56,8 +56,18 @@ class Connection : public sqlgen::Connection {
   std::string add_not_null_if_necessary(
       const dynamic::types::Properties& _p) const noexcept;
 
+  std::string column_or_value_to_sql(
+      const dynamic::ColumnOrValue& _col) const noexcept;
+
   std::string column_to_sql_definition(
       const dynamic::Column& _col) const noexcept;
+
+  std::string condition_to_sql(
+      const dynamic::Condition& _condition) const noexcept;
+
+  template <class ConditionType>
+  std::string condition_to_sql_impl(
+      const ConditionType& _condition) const noexcept;
 
   std::string create_table_to_sql(
       const dynamic::CreateTable& _stmt) const noexcept;
@@ -88,6 +98,51 @@ class Connection : public sqlgen::Connection {
 
   Credentials credentials_;
 };
+
+template <class ConditionType>
+std::string Connection::condition_to_sql_impl(
+    const ConditionType& _condition) const noexcept {
+  using C = std::remove_cvref_t<ConditionType>;
+  std::stringstream stream;
+
+  if constexpr (std::is_same_v<C, dynamic::Condition::And>) {
+    stream << "(" << condition_to_sql(*_condition.cond1) << ") AND ("
+           << condition_to_sql(*_condition.cond2) << ")";
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::Equal>) {
+    stream << column_or_value_to_sql(_condition.op1) << " = "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::GreaterEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " >= " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::GreaterThan>) {
+    stream << column_or_value_to_sql(_condition.op1) << " > "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::NotEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " != " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::LesserEqual>) {
+    stream << column_or_value_to_sql(_condition.op1)
+           << " <= " << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::LesserThan>) {
+    stream << column_or_value_to_sql(_condition.op1) << " < "
+           << column_or_value_to_sql(_condition.op2);
+
+  } else if constexpr (std::is_same_v<C, dynamic::Condition::Or>) {
+    stream << "(" << condition_to_sql(*_condition.cond1) << ") OR ("
+           << condition_to_sql(*_condition.cond2) << ")";
+
+  } else {
+    static_assert(rfl::always_false_v<C>, "Not all cases where covered.");
+  }
+
+  return stream.str();
+}
 
 }  // namespace sqlgen::postgres
 

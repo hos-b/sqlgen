@@ -25,6 +25,11 @@ struct Col {
 template <rfl::internal::StringLiteral _name>
 const auto col = Col<_name>{};
 
+template <rfl::internal::StringLiteral _name>
+auto operator"" _c() {
+  return Col<_name>{};
+}
+
 template <rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 auto operator==(const Col<_name1>&, const Col<_name2>&) {

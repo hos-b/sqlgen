@@ -23,9 +23,9 @@ auto operator|(const Read<ContainerType, WhereType, OrderByType, LimitType>& _r,
                 "You cannot call where(...) twice (but you can apply more "
                 "than one condition by combining them with && or ||).");
   static_assert(std::is_same_v<OrderByType, Nothing>,
-                "You must call order_by(...) after where(...).");
+                "You cannot call order_by(...) before where(...).");
   static_assert(std::is_same_v<LimitType, Nothing>,
-                "You must call limit(...) after where(...).");
+                "You cannot call limit(...) before where(...).");
   return Read<ContainerType, ConditionType, OrderByType, LimitType>{
       .where_ = _where.condition};
 }

@@ -15,6 +15,33 @@ std::string Connection::add_not_null_if_necessary(
   return std::string(_p.nullable ? "" : " NOT NULL");
 }
 
+std::string Connection::column_or_value_to_sql(
+    const dynamic::ColumnOrValue& _col) const noexcept {
+  const auto handle_value = [](const auto& _v) -> std::string {
+    using Type = std::remove_cvref_t<decltype(_v)>;
+    if constexpr (std::is_same_v<Type, dynamic::String>) {
+      return "'" + _v.val + "'";
+    } else {
+      return std::to_string(_v.val);
+    }
+  };
+
+  return _col.visit([&](const auto& _c) -> std::string {
+    using Type = std::remove_cvref_t<decltype(_c)>;
+    if constexpr (std::is_same_v<Type, dynamic::Column>) {
+      return wrap_in_quotes(_c.name);
+    } else {
+      return _c.visit(handle_value);
+    }
+  });
+}
+
+std::string Connection::condition_to_sql(
+    const dynamic::Condition& _cond) const noexcept {
+  return _cond.val.visit(
+      [&](const auto& _c) { return condition_to_sql_impl(_c); });
+}
+
 std::string Connection::column_to_sql_definition(
     const dynamic::Column& _col) const noexcept {
   return wrap_in_quotes(_col.name) + " " + type_to_sql(_col.type) +
@@ -137,6 +164,10 @@ std::string Connection::select_from_to_sql(
     stream << wrap_in_quotes(*_stmt.table.schema) << ".";
   }
   stream << wrap_in_quotes(_stmt.table.name);
+
+  if (_stmt.where) {
+    stream << " WHERE " << condition_to_sql(*_stmt.where);
+  }
 
   if (_stmt.order_by) {
     stream << " ORDER BY "

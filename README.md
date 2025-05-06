@@ -5,7 +5,7 @@ sqlgen is an ORM and SQL query generator for C++-20, similar to Python's [SQLAlc
 Much like SQLModel is closely integrated with [pydantic](https://github.com/pydantic/pydantic),
 sqlgen is closely integrated with our sister project [reflect-cpp](https://github.com/getml/reflect-cpp). This allows you to construct very reliable and highly efficient data pipelines.
 
-## Simple example
+## Inserting data 
 
 Here is how you connect to a PostgreSQL database
 and insert some data:
@@ -40,6 +40,8 @@ if (!result) {
 }
 ```
 
+## Retrieving data 
+
 Here is how you retrieve the same data from the database
 and print the results as a JSON:
 
@@ -52,9 +54,9 @@ const auto conn = sqlgen::postgres::connect(credentials);
 using namespace sqlgen;
 
 // Query that returns the 100 youngest children.
-const auto get_children = sqlgen::read<std::vector<Person>> |
+const auto get_children = sqlgen::read<std::vector<People>> |
                           where("age"_c < 18) |
-                          order_by("age"_c) |
+                          order_by("age"_c, "first_name"_c) |
                           limit(100);
 
 // Actually executes the query.
@@ -66,6 +68,23 @@ if (result) {
 } else {
     std::cout << result.error().what() << std::endl;
 }
+```
+
+## Compile-time checks
+
+sqlgen protects you from various mistakes through comprehensive
+compile time checks:
+
+```cpp
+struct People {
+    std::string first_name;
+    std::string last_name;
+    uint age;
+};
+
+// Will not compile - no column named "color".
+const auto get_children = sqlgen::read<std::vector<People>> |
+                          where("age"_c < 18 and "color"_c != 'green');
 ```
 
 ## Installation

@@ -9,6 +9,7 @@
 #include "../Result.hpp"
 #include "../dynamic/Condition.hpp"
 #include "Condition.hpp"
+#include "all_columns_exist.hpp"
 #include "conditions.hpp"
 #include "to_value.hpp"
 
@@ -40,6 +41,9 @@ struct ToCondition<T, conditions::And<CondType1, CondType2>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::Equal<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::Equal{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -50,6 +54,8 @@ struct ToCondition<T, conditions::Equal<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::Equal<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::Equal{
                                   .op1 = dynamic::Column{.name = _name.str()},
@@ -61,6 +67,9 @@ struct ToCondition<T, conditions::Equal<Col<_name>, Value<V>>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::GreaterEqual<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::GreaterEqual{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -71,6 +80,8 @@ struct ToCondition<T, conditions::GreaterEqual<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::GreaterEqual<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::GreaterEqual{
                                   .op1 = dynamic::Column{.name = _name.str()},
@@ -82,6 +93,9 @@ struct ToCondition<T, conditions::GreaterEqual<Col<_name>, Value<V>>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::GreaterThan<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::GreaterThan{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -92,6 +106,8 @@ struct ToCondition<T, conditions::GreaterThan<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::GreaterThan<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::GreaterThan{
                                   .op1 = dynamic::Column{.name = _name.str()},
@@ -103,6 +119,9 @@ struct ToCondition<T, conditions::GreaterThan<Col<_name>, Value<V>>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::LesserEqual<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::LesserEqual{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -113,6 +132,8 @@ struct ToCondition<T, conditions::LesserEqual<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::LesserEqual<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::LesserEqual{
                                   .op1 = dynamic::Column{.name = _name.str()},
@@ -124,6 +145,9 @@ struct ToCondition<T, conditions::LesserEqual<Col<_name>, Value<V>>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::LesserThan<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::LesserThan{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -134,6 +158,8 @@ struct ToCondition<T, conditions::LesserThan<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::LesserThan<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::LesserThan{
                                   .op1 = dynamic::Column{.name = _name.str()},
@@ -145,6 +171,9 @@ struct ToCondition<T, conditions::LesserThan<Col<_name>, Value<V>>> {
 template <class T, rfl::internal::StringLiteral _name1,
           rfl::internal::StringLiteral _name2>
 struct ToCondition<T, conditions::NotEqual<Col<_name1>, Col<_name2>>> {
+  static_assert(all_columns_exist<T, Col<_name1>, Col<_name2>>(),
+                "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::NotEqual{
                                   .op1 = dynamic::Column{.name = _name1.str()},
@@ -155,6 +184,8 @@ struct ToCondition<T, conditions::NotEqual<Col<_name1>, Col<_name2>>> {
 
 template <class T, rfl::internal::StringLiteral _name, class V>
 struct ToCondition<T, conditions::NotEqual<Col<_name>, Value<V>>> {
+  static_assert(all_columns_exist<T, Col<_name>>(), "All columns must exist.");
+
   dynamic::Condition operator()(const auto& _cond) const {
     return dynamic::Condition{.val = dynamic::Condition::NotEqual{
                                   .op1 = dynamic::Column{.name = _name.str()},

@@ -20,6 +20,8 @@
 
 [sqlgen::Literal](literal.md) - How to define fields that only allow for a fixed set of values.
 
+[sqlgen::Pattern](pattern.md) - How to add regex pattern validation to avoid SQL injection.
+
 ## Supported databases
 
 [postgres](postgres.md) - How to interact with PostgreSQL or a related database (Redshift, Aurora, Greenplum...).

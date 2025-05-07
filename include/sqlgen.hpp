@@ -2,6 +2,7 @@
 #define SQLGEN_HPP_
 
 #include "sqlgen/Connection.hpp"
+#include "sqlgen/Flatten.hpp"
 #include "sqlgen/Iterator.hpp"
 #include "sqlgen/IteratorBase.hpp"
 #include "sqlgen/Literal.hpp"

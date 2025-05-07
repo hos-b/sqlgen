@@ -4,9 +4,9 @@
 
 [Defining tables](defining_tables.md) - How to define tables using C++ structs.
 
-[Reading](reading.md) - How to read data from a database.
+[sqlgen::read](reading.md) - How to read data from a database.
 
-[Writing](writing.md) - How to write data to a database.
+[sqlgen::write](writing.md) - How to write data to a database.
 
 [sqlgen::Result](result.md) - How sqlgen handles errors.
 

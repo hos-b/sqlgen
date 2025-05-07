@@ -54,6 +54,7 @@ const auto conn = sqlgen::postgres::connect(credentials);
 using namespace sqlgen;
 
 // Query that returns the 100 youngest children.
+// Columns are referred to using the _c operator.
 const auto get_children = sqlgen::read<std::vector<People>> |
                           where("age"_c < 18) |
                           order_by("age"_c, "first_name"_c) |

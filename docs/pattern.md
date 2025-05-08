@@ -2,6 +2,8 @@
 
 The `sqlgen::Pattern` class provides a type-safe way to validate string fields against regular expressions in C++. It's particularly useful for preventing SQL injection by ensuring data conforms to expected patterns before it reaches the database.
 
+Note that sqlgen already prevents some forms of SQL injection by using prepared statements or the copy operator for inserting data.
+
 ## Usage
 
 ### Basic Definition
@@ -21,7 +23,7 @@ struct User {
 
 ### Built-in Patterns
 
-SQLGen provides several commonly used patterns out of the box:
+sqlgen provides several commonly used patterns out of the box:
 
 ```cpp
 // Alphanumeric strings
@@ -60,6 +62,13 @@ const auto person = Person{
 };
 ```
 
+For exception-free construction, you can use `.from_value(...)`:
+
+```cpp
+// sqlgen::Result<sqlgen::AlphaNumeric>
+const auto res = sqlgen::AlphaNumeric::from_value("Homer");
+```
+
 ### Accessing Values
 
 Access the underlying string value:
@@ -84,15 +93,47 @@ Pattern validation is a crucial security feature that helps prevent SQL injectio
 2. Ensuring data conforms to expected formats
 3. Rejecting potentially malicious input that doesn't match the pattern
 
-For example, using `AlphaNumeric` for usernames prevents injection of SQL commands:
+###  Example
+
+Consider this example that demonstrates safe query filtering:
 
 ```cpp
-struct User {
+struct Person {
     sqlgen::PrimaryKey<uint32_t> id;
-    sqlgen::AlphaNumeric username;  // Rejects: "admin'; DROP TABLE users;--"
-    sqlgen::Email email;           // Rejects: "invalid@email'; DELETE FROM users;--"
+    sqlgen::AlphaNumeric first_name;
+    sqlgen::AlphaNumeric last_name;
+    int age;
 };
+
+// Safe query function using AlphaNumeric for filtering
+std::vector<Person> get_people(const auto& conn, 
+                               const sqlgen::AlphaNumeric& first_name) {
+    using namespace sqlgen;
+    const auto query = sqlgen::read<std::vector<Person>> | 
+                       where("first_name"_c == first_name);
+    return query(conn).value();
+}
 ```
+
+Without `AlphaNumeric` validation, this code would be vulnerable to SQL injection during query filtering:
+
+```cpp
+// Malicious query parameter that would be rejected by AlphaNumeric
+get_people(conn, "Homer' OR '1'='1");  // Attempt to bypass filtering
+```
+
+The `AlphaNumeric` pattern prevents these attacks by:
+- Only allowing alphanumeric characters
+- Rejecting special characters like `'`, ` `, `=` that are commonly used in SQL injection
+- Validating the input before it reaches the database layer
+
+The test demonstrates safe usage with valid data:
+```cpp
+// Safe query filtering
+const auto people = get_people(conn, "Homer");
+```
+
+This example shows how `AlphaNumeric` provides an additional layer of security for query parameters.
 
 ## Notes
 

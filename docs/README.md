@@ -18,8 +18,6 @@
 
 [sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs.
 
-[sqlgen::Literal](literal.md) - How to define fields that only allow for a fixed set of values.
-
 [sqlgen::Pattern](pattern.md) - How to add regex pattern validation to avoid SQL injection.
 
 ## Supported databases

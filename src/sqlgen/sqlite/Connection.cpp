@@ -42,7 +42,7 @@ typename Connection::ConnPtr Connection::make_conn(const std::string& _fname) {
 }
 
 Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
-  const auto sql = to_sql(_query);
+  const auto sql = to_sql_impl(_query);
 
   sqlite3_stmt* p_stmt = nullptr;
 
@@ -70,7 +70,7 @@ Result<Nothing> Connection::start_write(const dynamic::Insert& _stmt) {
         ".end_write() before you can start another.");
   }
 
-  const auto sql = to_sql(_stmt);
+  const auto sql = to_sql_impl(_stmt);
 
   sqlite3_stmt* p_stmt = nullptr;
 

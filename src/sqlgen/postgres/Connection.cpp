@@ -46,7 +46,7 @@ typename Connection::ConnPtr Connection::make_conn(
 }
 
 Result<Ref<IteratorBase>> Connection::read(const dynamic::SelectFrom& _query) {
-  const auto sql = postgres::to_sql(_query);
+  const auto sql = postgres::to_sql_impl(_query);
   try {
     return Ref<IteratorBase>(Ref<Iterator>::make(sql, conn_));
   } catch (std::exception& e) {

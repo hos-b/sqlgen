@@ -223,7 +223,7 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept {
   return stream.str();
 }
 
-std::string to_sql(const dynamic::Statement& _stmt) noexcept {
+std::string to_sql_impl(const dynamic::Statement& _stmt) noexcept {
   return _stmt.visit([&](const auto& _s) -> std::string {
     using S = std::remove_cvref_t<decltype(_s)>;
     if constexpr (std::is_same_v<S, dynamic::CreateTable>) {

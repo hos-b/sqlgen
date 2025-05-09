@@ -37,7 +37,7 @@ class Connection : public sqlgen::Connection {
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final {
-    return sqlite::to_sql(_stmt);
+    return sqlite::to_sql_impl(_stmt);
   }
 
   Result<Nothing> start_write(const dynamic::Insert& _stmt) final;

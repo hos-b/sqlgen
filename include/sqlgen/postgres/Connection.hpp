@@ -41,11 +41,11 @@ class Connection : public sqlgen::Connection {
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final {
-    return postgres::to_sql(_stmt);
+    return postgres::to_sql_impl(_stmt);
   }
 
   Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
-    return execute(to_sql(_stmt));
+    return execute(postgres::to_sql_impl(_stmt));
   }
 
   Result<Nothing> end_write() final;

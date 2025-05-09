@@ -19,6 +19,32 @@ const auto conn = sqlgen::sqlite::connect();
 sqlgen::write(conn, people);
 ```
 
+This generates the following SQL for PostgreSQL:
+
+```sql
+CREATE TABLE IF NOT EXISTS "Person" (
+    "id" INTEGER,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "age" INTEGER NOT NULL
+);
+
+COPY "Person"("id", "first_name", "last_name", "age") FROM STDIN WITH DELIMITER '\t' NULL '\e' QUOTE '\a';
+```
+
+For other dialects like SQLite, it uses prepared INSERT statements instead:
+
+```sql
+CREATE TABLE IF NOT EXISTS "Person" (
+    "id" INTEGER,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "age" INTEGER NOT NULL
+);
+
+INSERT INTO "Person" ("id", "first_name", "last_name", "age") VALUES (?, ?, ?, ?);
+```
+
 ### With Result<Ref<Connection>>
 
 Handle connection creation and writing in a single chain:
@@ -29,6 +55,8 @@ sqlgen::sqlite::connect("database.db")
     .value();
 ```
 
+This generates the same SQL as above, adapted to the specific database dialect being used.
+
 ### With Iterators
 
 Write a range of objects using iterators:
@@ -37,6 +65,8 @@ Write a range of objects using iterators:
 std::vector<Person> people = /* ... */;
 sqlgen::write(conn, people.begin(), people.end());
 ```
+
+This also generates the same SQL, adapted to the specific database dialect.
 
 ## How It Works
 
@@ -56,4 +86,7 @@ The `write` function performs the following operations in sequence:
   1. Takes a connection reference and iterators
   2. Takes a `Result<Ref<Connection>>` and iterators
   3. Takes a connection and a container directly
+- The SQL generation adapts to the database dialect:
+  - PostgreSQL uses the efficient COPY command for bulk inserts
+  - Other dialects use prepared INSERT statements
 

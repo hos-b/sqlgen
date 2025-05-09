@@ -11,18 +11,26 @@ Read all rows from a table into a container (e.g., `std::vector<Person>`):
 ```cpp
 const auto conn = sqlgen::sqlite::connect("database.db");
 
-const auto people = sqlgen::read<std::vector<Person>>(conn).value();
+const std::vector<Person> people = sqlgen::read<std::vector<Person>>(conn).value();
+```
+
+This generates the following SQL:
+
+```sql
+SELECT "id", "first_name", "last_name", "age"
+FROM "Person";
 ```
 
 Note that `conn` is actually a connection wrapped into an `sqlgen::Result<...>`.
 This means you can use monadic error handling and fit this into a single line:
 
 ```cpp
+// sqlgen::Result<std::vector<Person>>
 const auto people = sqlgen::sqlite::connect("database.db").and_then(
-                        sqlgen::read<std::vector<Person>>).value();
+                        sqlgen::read<std::vector<Person>>);
 ```
 
-Please refer to the documentation on `sqlgen::Result<...>` for more information.
+Please refer to the documentation on `sqlgen::Result<...>` for more information on error handling.
 
 ### With `where` clause
 
@@ -37,6 +45,16 @@ const auto query = sqlgen::read<std::vector<Person>> |
 const auto minors = query(conn).value();
 ```
 
+This generates the following SQL:
+
+```sql
+SELECT "id", "first_name", "last_name", "age"
+FROM "Person"
+WHERE 
+    ("age" < 18) AND 
+    ("first_name" != 'Hugo');
+```
+
 Note that `"..."_c` refers to the name of the column. If such a field does not
 exists on the struct `Person`, the code will fail to compile.
 
@@ -48,7 +66,8 @@ using namespace sqlgen;
 const auto query = sqlgen::read<std::vector<Person>> |
                    where("age"_c < 18 and "first_name"_c != "Hugo");
 
-const auto minors = sqlite::connect("database.db").and_then(query).value();
+// sqlgen::Result<std::vector<Person>>
+const auto minors = sqlite::connect("database.db").and_then(query);
 ```
 
 ### With `order_by` and `limit`
@@ -65,15 +84,41 @@ const auto query = sqlgen::read<std::vector<Person>> |
 const auto youngest_two = query(conn).value();
 ```
 
+This generates the following SQL:
+
+```sql
+SELECT "id", "first_name", "last_name", "age"
+FROM "Person"
+ORDER BY "age"
+LIMIT 2;
+```
+
 ### With ranges
 
 Read results as a lazy range:
 
 ```cpp
 const auto people_range = sqlgen::read<sqlgen::Range<Person>>(conn).value();
+
 for (const sqlgen::Result<Person>& person : people_range) {
     // process result 
 }
+```
+
+`sqlgen::Range<T>` satisfies the `std::ranges::input_range` concept, making it compatible with C++20 ranges and views. This allows for memory-efficient iteration through database results and enables composition with other range operations:
+
+```cpp
+using namespace std::ranges::views;
+
+// Transform range results
+const auto first_names = people_range | transform([](const sqlgen::Result<Person>& r) {
+    return r.value().first_name;
+});
+
+// Filter range results
+const auto adults = people_range | filter([](const sqlgen::Result<Person>& r) {
+    return r && r->age >= 18;
+});
 ```
 
 ## Example: Full Query Composition
@@ -87,6 +132,19 @@ const auto query = sqlgen::read<std::vector<Person>> |
                    limit(10);
 
 const auto adults = query(conn).value();
+```
+
+This generates the following SQL:
+
+```sql
+SELECT "id", "first_name", "last_name", "age"
+FROM "Person"
+WHERE 
+    ("age" >= 18)
+ORDER BY 
+    "last_name",
+    "first_name" DESC
+LIMIT 10;
 ```
 
 It is strongly recommended that you use `using namespace sqlgen`. However,

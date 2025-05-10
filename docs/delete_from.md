@@ -97,6 +97,6 @@ const auto result = query(conn).value();
 ## Notes
 
 - The `where` clause is optional - if omitted, all records will be deleted
-- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on results for other forms of error handling.
+- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or refer to the documentation on results for other forms of error handling.
 - `"..."_c` refers to the name of the column
 

@@ -14,7 +14,6 @@
 #include "Result.hpp"
 #include "internal/batch_size.hpp"
 #include "internal/to_str_vec.hpp"
-#include "transpilation/has_value_type.hpp"
 #include "transpilation/to_create_table.hpp"
 #include "transpilation/to_insert.hpp"
 

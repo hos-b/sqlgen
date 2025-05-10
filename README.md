@@ -12,7 +12,7 @@ sqlgen is closely integrated with our sister project [reflect-cpp](https://githu
 
 ## Documentation
 
-Click [here](docs).
+Click [here](docs/README.md).
 
 ## Inserting data 
 

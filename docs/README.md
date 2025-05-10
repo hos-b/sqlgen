@@ -18,6 +18,8 @@
 
 [sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs.
 
+[sqlgen::delete_from](delete_from.md) - How to delete data from a table.
+
 [sqlgen::Pattern](pattern.md) - How to add regex pattern validation to avoid SQL injection.
 
 ## Supported databases

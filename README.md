@@ -1,9 +1,18 @@
-# sqlgen
+# ![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white) sqlgen 
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/getml/reflect-cpp/graphs/commit-activity)
+[![Generic badge](https://img.shields.io/badge/C++-20-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/gcc-11+-blue.svg)](https://shields.io/)
 
 sqlgen is an ORM and SQL query generator for C++-20, similar to Python's [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)/[SQLModel](https://github.com/fastapi/sqlmodel) or Rust's [Diesel](https://github.com/diesel-rs/diesel).
 
 Much like SQLModel is closely integrated with [pydantic](https://github.com/pydantic/pydantic),
 sqlgen is closely integrated with our sister project [reflect-cpp](https://github.com/getml/reflect-cpp). This allows you to construct very reliable and highly efficient data pipelines.
+
+## Documentation
+
+Click [here](docs).
 
 ## Inserting data 
 

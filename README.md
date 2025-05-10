@@ -5,191 +5,191 @@
 [![Generic badge](https://img.shields.io/badge/C++-20-blue.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/gcc-11+-blue.svg)](https://shields.io/)
 
-sqlgen is an ORM and SQL query generator for C++-20, similar to Python's [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)/[SQLModel](https://github.com/fastapi/sqlmodel) or Rust's [Diesel](https://github.com/diesel-rs/diesel).
+sqlgen is a modern, type-safe ORM and SQL query generator for C++20, inspired by Python's [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)/[SQLModel](https://github.com/fastapi/sqlmodel) and Rust's [Diesel](https://github.com/diesel-rs/diesel). It provides a fluent, composable interface for database operations with compile-time type checking and SQL injection protection.
 
-Much like SQLModel is closely integrated with [pydantic](https://github.com/pydantic/pydantic),
-sqlgen is closely integrated with our sister project [reflect-cpp](https://github.com/getml/reflect-cpp). This allows you to construct very reliable and highly efficient data pipelines.
+## Features
 
-## Documentation
+- 🔒 **Type Safety**: Compile-time validation of table schemas and queries
+- 🛡️ **SQL Injection Protection**: Built-in input validation and parameterized queries
+- 🔄 **Composable Queries**: Fluent interface for building complex queries
+- 🚀 **High Performance**: Efficient batch operations and prepared statements
+- 📦 **Modern C++**: Leverages C++20 features for a clean, expressive API
+- 🔌 **Multiple Backends**: Support for PostgreSQL and SQLite
+- 🔍 **Reflection Integration**: Seamless integration with [reflect-cpp](https://github.com/getml/reflect-cpp)
 
-Click [here](docs).
+## Quick Start
 
-## Inserting data 
+### Installation
 
-Here is how you connect to a PostgreSQL database
-and insert some data:
-
-```cpp
-#include <sqlgen/postgres.hpp>
-
-struct People {
-    std::string first_name;
-    std::string last_name;
-    uint age;
-};
-
-const auto people = std::vector<People>({
-    People{.first_name = "Homer",
-           .last_name = "Simpson",
-           .age = 45}});
-
-const auto credentials = sqlgen::postgres::Credentials{
-    .user = "...", .password = "...", ...
-};
-
-const auto conn = sqlgen::postgres::connect(credentials);
-
-// Will automatically create a table called 'People'
-// with the columns 'first_name', 'last_name' and 'age', 
-// if necessary.
-const auto result = sqlgen::write(conn, people);
-
-if (!result) {
-    std::cout << result.error().what() << std::endl;
-}
-```
-
-The resulting SQL code (will vary from dialect to dialect):
-
-```sql
-CREATE TABLE IF NOT EXISTS "People" (
-    "first_name" TEXT NOT NULL,
-    "last_name" TEXT NOT NULL,
-    "age" INTEGER NOT NULL
-);
-
-INSERT INTO "People" ("first_name", "last_name", "age") VALUES (?, ?, ?);
-```
-
-## Retrieving data 
-
-Here is how you retrieve the same data from the database
-and print the results as a JSON:
-
-```cpp
-#include <rfl/json.hpp> // reflect-cpp
-#include <sqlgen/postgres.hpp>
-
-const auto conn = sqlgen::postgres::connect(credentials);
-
-using namespace sqlgen;
-
-// Query that returns the 100 youngest children.
-// Columns are referred to using the _c operator.
-const auto get_children = sqlgen::read<std::vector<People>> |
-                          where("age"_c < 18) |
-                          order_by("age"_c, "first_name"_c) |
-                          limit(100);
-
-// Actually executes the query.
-// Returns sqlgen::Result<std::vector<People>>
-const auto result = get_children(conn);
-
-if (result) {
-    std::cout << rfl::json::write(*result) << std::endl;
-} else {
-    std::cout << result.error().what() << std::endl;
-}
-```
-
-The resulting SQL code:
-
-```sql
-SELECT "first_name", "last_name", "age"
-FROM "People"
-WHERE "age" < 18
-ORDER BY "age", "first_name" 
-LIMIT 100;
-```
-
-## Compile-time checks
-
-sqlgen protects you from various mistakes through comprehensive
-compile time checks:
-
-```cpp
-struct People {
-    std::string first_name;
-    std::string last_name;
-    uint age;
-};
-
-// Will not compile - no column named "color".
-const auto get_children = sqlgen::read<std::vector<People>> |
-                          where("age"_c < 18 and "color"_c != 'green');
-```
-
-## Protection against SQL injections
-
-sqlgen provides input validation to protect against SQL injection.
-
-```cpp
-// Safe query function using AlphaNumeric for filtering
-std::vector<People> get_people(const auto& conn, 
-                               const sqlgen::AlphaNumeric& first_name) {
-    using namespace sqlgen;
-    const auto query = sqlgen::read<std::vector<People>> | 
-                       where("first_name"_c == first_name);
-    return query(conn).value();
-}
-```
-
-Without `AlphaNumeric` validation, this code would be vulnerable to SQL injection during query filtering:
-
-```cpp
-// Malicious query parameter that would be rejected by AlphaNumeric
-get_people(conn, "Homer' OR '1'='1");  // Attempt to bypass filtering
-```
-
-## Dropping a table
-
-```cpp
-using namespace sqlgen;
-
-const auto query = drop<People> | if_exists;
-
-query(conn).value();
-```
-
-## Deleting data
-
-```cpp
-using namespace sqlgen;
-
-const auto query = delete_from<People> |
-                   where("first_name"_c == "Hugo");
-
-query(conn).value();
-```
-
-This generates the following SQL:
-
-```sql
-DELETE FROM "People"
-WHERE "first_name" = 'Hugo';
-```
-
-## Installation
-
-These three libraries are needed for PostgreSQL support:
-
-```
+1. Install required dependencies for PostgreSQL:
+```bash
 sudo apt-get install autoconf bison flex
 ```
 
-To install vcpkg:
-
-```
+2. Set up vcpkg:
+```bash
 git submodule update --init
-./vcpkg/bootstrap-vcpkg.sh # Linux, macOS
+./vcpkg/bootstrap-vcpkg.sh  # Linux, macOS
 ./vcpkg/bootstrap-vcpkg.bat # Windows
-# You may be prompted to install additional dependencies.
 ```
 
-To compile the library:
-
-```
+3. Build the library:
+```bash
 cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j 4 # gcc, clang
-cmake --build build --config Release -j 4 # MSVC
+cmake --build build -j 4  # gcc, clang
+cmake --build build --config Release -j 4  # MSVC
 ```
+
+## Usage Examples
+
+### Connecting to a Database
+
+```cpp
+#include <sqlgen/postgres.hpp>
+
+// PostgreSQL connection
+const auto credentials = sqlgen::postgres::Credentials{
+    .user = "username",
+    .password = "password",
+    .host = "localhost",
+    .dbname = "mydb",
+    .port = 5432
+};
+
+const auto conn = sqlgen::postgres::connect(credentials);
+
+// SQLite connection
+const auto sqlite_conn = sqlgen::sqlite::connect("database.db");
+```
+
+### Defining Models
+
+```cpp
+struct Person {
+    std::string first_name;
+    std::string last_name;
+    uint32_t age;
+    std::optional<std::string> email;  // Nullable field
+};
+```
+
+### Inserting Data
+
+```cpp
+const auto people = std::vector<Person>({
+    Person{.first_name = "Homer", .last_name = "Simpson", .age = 45},
+    Person{.first_name = "Marge", .last_name = "Simpson", .age = 42}
+});
+
+// Automatically creates table if it doesn't exist
+const auto result = sqlgen::write(conn, people);
+
+if (!result) {
+    std::cerr << "Error: " << result.error().what() << std::endl;
+}
+```
+
+Generated SQL:
+```sql
+CREATE TABLE IF NOT EXISTS "Person" (
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "age" INTEGER NOT NULL,
+    "email" TEXT
+);
+
+INSERT INTO "Person" ("first_name", "last_name", "age", "email") 
+VALUES (?, ?, ?, ?);
+```
+
+### Querying Data
+
+```cpp
+#include <rfl/json.hpp>
+#include <sqlgen/postgres.hpp>
+
+using namespace sqlgen;
+
+// Build a query for adults, ordered by age
+const auto query = read<std::vector<Person>> |
+                   where("age"_c >= 18) |
+                   order_by("age"_c.desc(), "last_name"_c) |
+                   limit(10);
+
+// Execute the query
+const auto result = query(conn);
+
+if (result) {
+    // Print results as JSON
+    std::cout << rfl::json::write(*result) << std::endl;
+} else {
+    std::cerr << "Error: " << result.error().what() << std::endl;
+}
+```
+
+Generated SQL:
+```sql
+SELECT "first_name", "last_name", "age", "email"
+FROM "Person"
+WHERE "age" >= 18
+ORDER BY "age" DESC, "last_name"
+LIMIT 10;
+```
+
+### Deleting Data
+
+```cpp
+using namespace sqlgen;
+
+// Delete specific records
+const auto query = delete_from<Person> |
+                   where("last_name"_c == "Simpson" and "age"_c < 18);
+
+const auto result = query(conn);
+if (!result) {
+    std::cerr << "Error: " << result.error().what() << std::endl;
+}
+```
+
+### Dropping Tables
+
+```cpp
+using namespace sqlgen;
+
+// Safely drop a table if it exists
+const auto query = drop<Person> | if_exists;
+query(conn).value();
+```
+
+## Type Safety and SQL Injection Protection
+
+sqlgen provides comprehensive compile-time checks and runtime protection:
+
+```cpp
+// Compile-time error: No such column "color"
+const auto query = read<std::vector<Person>> |
+                   where("color"_c == "blue");
+
+// Runtime protection against SQL injection
+std::vector<Person> get_people(const auto& conn, 
+                              const sqlgen::AlphaNumeric& first_name) {
+    using namespace sqlgen;
+    return (read<std::vector<Person>> | 
+            where("first_name"_c == first_name))(conn).value();
+}
+
+// This will be rejected
+get_people(conn, "Homer' OR '1'='1");  // SQL injection attempt
+```
+
+## Documentation
+
+For detailed documentation, visit our [documentation page](docs/README.md).
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

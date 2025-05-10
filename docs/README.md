@@ -1,29 +1,30 @@
-# Documentation
+# sqlgen Documentation
 
-## Basics
+Welcome to the sqlgen documentation. This guide provides detailed information about sqlgen's features and APIs.
 
-[Defining tables](defining_tables.md) - How to define tables using C++ structs.
+## Core Concepts
 
-[sqlgen::read](reading.md) - How to read data from a database.
+- [Defining Tables](defining_tables.md) - How to define tables using C++ structs
+- [sqlgen::Result](result.md) - How sqlgen handles errors and results
+- [sqlgen::PrimaryKey](primary_key.md) - How to define primary keys in sqlgen
+- [sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs
 
-[sqlgen::write](writing.md) - How to write data to a database.
+## Database Operations
 
-[sqlgen::Result](result.md) - How sqlgen handles errors.
+- [sqlgen::read](reading.md) - How to read data from a database
+- [sqlgen::write](writing.md) - How to write data to a database
+- [sqlgen::delete_from](delete_from.md) - How to delete data from a table
+- [sqlgen::drop](drop.md) - How to drop a table
 
-[sqlgen::PrimaryKey](primary_key.md) - How to define primary keys in sqlgen.
+## Data Types and Validation
 
-[sqlgen::Timestamp](timestamp.md) - How timestamps work in sqlgen.
+- [sqlgen::Timestamp](timestamp.md) - How timestamps work in sqlgen
+- [sqlgen::Varchar](varchar.md) - How varchars work in sqlgen
+- [sqlgen::Pattern](pattern.md) - How to add regex pattern validation to avoid SQL injection
 
-[sqlgen::Varchar](varchar.md) - How varchars work in sqlgen.
+## Supported Databases
 
-[sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs.
+- [PostgreSQL](postgres.md) - How to interact with PostgreSQL and compatible databases (Redshift, Aurora, Greenplum)
+- [SQLite](sqlite.md) - How to interact with SQLite3
 
-[sqlgen::delete_from](delete_from.md) - How to delete data from a table.
-
-[sqlgen::Pattern](pattern.md) - How to add regex pattern validation to avoid SQL injection.
-
-## Supported databases
-
-[postgres](postgres.md) - How to interact with PostgreSQL or a related database (Redshift, Aurora, Greenplum...).
-
-[sqlite](sqlite.md) - How to interact with SQLite3. 
+For installation instructions, quick start guide, and usage examples, please refer to the [main README](../README.md). 

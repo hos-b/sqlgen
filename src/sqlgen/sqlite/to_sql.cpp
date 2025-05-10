@@ -20,6 +20,8 @@ std::string condition_to_sql_impl(const ConditionType& _condition) noexcept;
 
 std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 
+std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept;
+
 std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept;
 
 std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
@@ -131,6 +133,25 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept {
   return stream.str();
 }
 
+std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept {
+  std::stringstream stream;
+
+  stream << "DELETE FROM ";
+
+  if (_stmt.table.schema) {
+    stream << "\"" << *_stmt.table.schema << "\".";
+  }
+  stream << "\"" << _stmt.table.name << "\"";
+
+  if (_stmt.where) {
+    stream << " WHERE " << condition_to_sql(*_stmt.where);
+  }
+
+  stream << ";";
+
+  return stream.str();
+}
+
 std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept {
   using namespace std::ranges::views;
 
@@ -215,10 +236,16 @@ std::string to_sql_impl(const dynamic::Statement& _stmt) noexcept {
     using S = std::remove_cvref_t<decltype(_s)>;
     if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
       return create_table_to_sql(_s);
+
+    } else if constexpr (std::is_same_v<S, dynamic::DeleteFrom>) {
+      return delete_from_to_sql(_s);
+
     } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
       return insert_to_sql(_s);
+
     } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
       return select_from_to_sql(_s);
+
     } else {
       static_assert(rfl::always_false_v<S>, "Unsupported type.");
     }

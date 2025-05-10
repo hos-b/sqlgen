@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "Result.hpp"
+#include "delete_from.hpp"
 #include "read.hpp"
 #include "transpilation/Limit.hpp"
 #include "transpilation/value_t.hpp"
@@ -14,6 +15,15 @@ template <class ConditionType>
 struct Where {
   ConditionType condition;
 };
+
+template <class ValueType, class WhereType, class ConditionType>
+auto operator|(const DeleteFrom<ValueType, WhereType>& _d,
+               const Where<ConditionType>& _where) {
+  static_assert(std::is_same_v<WhereType, Nothing>,
+                "You cannot call where(...) twice (but you can apply more "
+                "than one condition by combining them with && or ||).");
+  return DeleteFrom<ValueType, ConditionType>{.where_ = _where.condition};
+}
 
 template <class ContainerType, class WhereType, class OrderByType,
           class LimitType, class ConditionType>

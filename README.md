@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS "People" (
     "age" INTEGER NOT NULL
 );
 
-INSERT INTO "Person" ("first_name", "last_name", "age") VALUES (?, ?, ?);
+INSERT INTO "People" ("first_name", "last_name", "age") VALUES (?, ?, ?);
 ```
 
 ## Retrieving data 
@@ -87,7 +87,7 @@ The resulting SQL code:
 
 ```sql
 SELECT "first_name", "last_name", "age"
-FROM "Person"
+FROM "People"
 WHERE "age" < 18
 ORDER BY "age", "first_name" 
 LIMIT 100;
@@ -116,10 +116,10 @@ sqlgen provides input validation to protect against SQL injection.
 
 ```cpp
 // Safe query function using AlphaNumeric for filtering
-std::vector<Person> get_people(const auto& conn, 
+std::vector<People> get_people(const auto& conn, 
                                const sqlgen::AlphaNumeric& first_name) {
     using namespace sqlgen;
-    const auto query = sqlgen::read<std::vector<Person>> | 
+    const auto query = sqlgen::read<std::vector<People>> | 
                        where("first_name"_c == first_name);
     return query(conn).value();
 }
@@ -130,6 +130,24 @@ Without `AlphaNumeric` validation, this code would be vulnerable to SQL injectio
 ```cpp
 // Malicious query parameter that would be rejected by AlphaNumeric
 get_people(conn, "Homer' OR '1'='1");  // Attempt to bypass filtering
+```
+
+## Deleting data
+
+```cpp
+using namespace sqlgen;
+
+const auto query = delete_from<People> |
+                   where("first_name"_c == "Hugo");
+
+query(conn).value();
+```
+
+This generates the following SQL:
+
+```sql
+DELETE FROM "People"
+WHERE "first_name" = 'Hugo';
 ```
 
 ## Installation

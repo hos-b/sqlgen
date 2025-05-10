@@ -3,6 +3,7 @@
 
 #include <iterator>
 #include <optional>
+#include <ranges>
 #include <rfl.hpp>
 #include <string>
 #include <type_traits>
@@ -13,6 +14,7 @@
 #include "Result.hpp"
 #include "internal/batch_size.hpp"
 #include "internal/to_str_vec.hpp"
+#include "transpilation/has_value_type.hpp"
 #include "transpilation/to_create_table.hpp"
 #include "transpilation/to_insert.hpp"
 
@@ -71,7 +73,11 @@ auto write(const Result<Ref<Connection>>& _res, ItBegin _begin,
 template <class ConnectionType, class ContainerType>
 auto write(const ConnectionType& _conn,
            const ContainerType& _container) noexcept {
-  return write(_conn, _container.begin(), _container.end());
+  if constexpr (std::ranges::input_range<std::remove_cvref_t<ContainerType>>) {
+    return write(_conn, _container.begin(), _container.end());
+  } else {
+    return write(_conn, &_container, &_container + 1);
+  }
 }
 
 }  // namespace sqlgen

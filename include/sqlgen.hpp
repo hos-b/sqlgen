@@ -16,6 +16,8 @@
 #include "sqlgen/Varchar.hpp"
 #include "sqlgen/col.hpp"
 #include "sqlgen/delete_from.hpp"
+#include "sqlgen/drop.hpp"
+#include "sqlgen/if_exists.hpp"
 #include "sqlgen/limit.hpp"
 #include "sqlgen/order_by.hpp"
 #include "sqlgen/patterns.hpp"

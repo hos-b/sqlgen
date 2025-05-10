@@ -6,10 +6,12 @@
 #include "../CreateTable.hpp"
 #include "../Insert.hpp"
 #include "../delete_from.hpp"
+#include "../drop.hpp"
 #include "../dynamic/Statement.hpp"
 #include "../read.hpp"
 #include "to_create_table.hpp"
 #include "to_delete_from.hpp"
+#include "to_drop.hpp"
 #include "to_insert.hpp"
 #include "to_select_from.hpp"
 #include "value_t.hpp"
@@ -30,6 +32,13 @@ template <class T, class WhereType>
 struct ToSQL<DeleteFrom<T, WhereType>> {
   dynamic::Statement operator()(const auto& _delete_from) const {
     return to_delete_from<T>(_delete_from.where_);
+  }
+};
+
+template <class T>
+struct ToSQL<Drop<T>> {
+  dynamic::Statement operator()(const auto& _drop) const {
+    return to_drop<T>(_drop.if_exists_);
   }
 };
 

@@ -5,13 +5,14 @@
 
 #include "CreateTable.hpp"
 #include "DeleteFrom.hpp"
+#include "Drop.hpp"
 #include "Insert.hpp"
 #include "SelectFrom.hpp"
 
 namespace sqlgen::dynamic {
 
 using Statement =
-    rfl::TaggedUnion<"stmt", CreateTable, DeleteFrom, Insert, SelectFrom>;
+    rfl::TaggedUnion<"stmt", CreateTable, DeleteFrom, Drop, Insert, SelectFrom>;
 
 }  // namespace sqlgen::dynamic
 

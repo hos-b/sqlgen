@@ -22,6 +22,8 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 
 std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept;
 
+std::string drop_to_sql(const dynamic::Drop& _stmt) noexcept;
+
 std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept;
 
 std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
@@ -152,6 +154,25 @@ std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept {
   return stream.str();
 }
 
+std::string drop_to_sql(const dynamic::Drop& _stmt) noexcept {
+  std::stringstream stream;
+
+  stream << "DROP TABLE ";
+
+  if (_stmt.if_exists) {
+    stream << "IF EXISTS ";
+  }
+
+  if (_stmt.table.schema) {
+    stream << "\"" << *_stmt.table.schema << "\".";
+  }
+  stream << "\"" << _stmt.table.name << "\"";
+
+  stream << ";";
+
+  return stream.str();
+}
+
 std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept {
   using namespace std::ranges::views;
 
@@ -239,6 +260,9 @@ std::string to_sql_impl(const dynamic::Statement& _stmt) noexcept {
 
     } else if constexpr (std::is_same_v<S, dynamic::DeleteFrom>) {
       return delete_from_to_sql(_s);
+
+    } else if constexpr (std::is_same_v<S, dynamic::Drop>) {
+      return drop_to_sql(_s);
 
     } else if constexpr (std::is_same_v<S, dynamic::Insert>) {
       return insert_to_sql(_s);

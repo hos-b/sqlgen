@@ -12,7 +12,7 @@ sqlgen is closely integrated with our sister project [reflect-cpp](https://githu
 
 ## Documentation
 
-Click [here](docs/README.md).
+Click [here](docs).
 
 ## Inserting data 
 
@@ -139,6 +139,16 @@ Without `AlphaNumeric` validation, this code would be vulnerable to SQL injectio
 ```cpp
 // Malicious query parameter that would be rejected by AlphaNumeric
 get_people(conn, "Homer' OR '1'='1");  // Attempt to bypass filtering
+```
+
+## Dropping a table
+
+```cpp
+using namespace sqlgen;
+
+const auto query = drop<People> | if_exists;
+
+query(conn).value();
 ```
 
 ## Deleting data

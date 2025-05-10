@@ -21,9 +21,9 @@ sqlgen is a modern, type-safe ORM and SQL query generator for C++20, inspired by
 
 ### Installation
 
-1. Install required dependencies for PostgreSQL:
+1. Install required dependencies:
 ```bash
-sudo apt-get install autoconf bison flex
+sudo apt-get install autoconf bison flex libpq-dev libsqlite3-dev
 ```
 
 2. Set up vcpkg:
@@ -40,7 +40,41 @@ cmake --build build -j 4  # gcc, clang
 cmake --build build --config Release -j 4  # MSVC
 ```
 
+4. Include in your CMake project:
+```cmake
+find_package(sqlgen REQUIRED)
+target_link_libraries(your_target PRIVATE sqlgen::sqlgen)
+```
+
 ## Usage Examples
+
+### Hello World
+
+```cpp
+#include <sqlgen/sqlite.hpp>
+#include <iostream>
+
+struct User {
+    std::string name;
+    int age;
+};
+
+int main() {
+    // Connect to SQLite database
+    const auto conn = sqlgen::sqlite::connect("test.db");
+    
+    // Create and insert a user
+    const auto user = User{.name = "John", .age = 30};
+    sqlgen::write(conn, user);
+    
+    // Read all users
+    const auto users = sqlgen::read<std::vector<User>>(conn).value();
+    
+    for (const auto& u : users) {
+        std::cout << u.name << " is " << u.age << " years old\n";
+    }
+}
+```
 
 ### Connecting to a Database
 
@@ -136,32 +170,7 @@ ORDER BY "age" DESC, "last_name"
 LIMIT 10;
 ```
 
-### Deleting Data
-
-```cpp
-using namespace sqlgen;
-
-// Delete specific records
-const auto query = delete_from<Person> |
-                   where("last_name"_c == "Simpson" and "age"_c < 18);
-
-const auto result = query(conn);
-if (!result) {
-    std::cerr << "Error: " << result.error().what() << std::endl;
-}
-```
-
-### Dropping Tables
-
-```cpp
-using namespace sqlgen;
-
-// Safely drop a table if it exists
-const auto query = drop<Person> | if_exists;
-query(conn).value();
-```
-
-## Type Safety and SQL Injection Protection
+### Type Safety and SQL Injection Protection
 
 sqlgen provides comprehensive compile-time checks and runtime protection:
 
@@ -188,7 +197,7 @@ For detailed documentation, visit our [documentation page](docs/README.md).
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome constructive criticism, feature requests and contributions! Please open an issue or a pull request.
 
 ## License
 

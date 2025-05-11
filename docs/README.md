@@ -8,6 +8,7 @@ Welcome to the sqlgen documentation. This guide provides detailed information ab
 - [sqlgen::Result](result.md) - How sqlgen handles errors and results
 - [sqlgen::PrimaryKey](primary_key.md) - How to define primary keys in sqlgen
 - [sqlgen::Flatten](flatten.md) - How to "inherit" fields from other structs
+- [sqlgen::to_sql](to_sql.md) - How to transpile C++ operations to dialect-specific SQL
 
 ## Database Operations
 

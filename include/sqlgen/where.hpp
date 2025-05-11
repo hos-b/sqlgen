@@ -8,6 +8,7 @@
 #include "read.hpp"
 #include "transpilation/Limit.hpp"
 #include "transpilation/value_t.hpp"
+#include "update.hpp"
 
 namespace sqlgen {
 
@@ -38,6 +39,16 @@ auto operator|(const Read<ContainerType, WhereType, OrderByType, LimitType>& _r,
                 "You cannot call limit(...) before where(...).");
   return Read<ContainerType, ConditionType, OrderByType, LimitType>{
       .where_ = _where.condition};
+}
+
+template <class ValueType, class SetsType, class WhereType, class ConditionType>
+auto operator|(const Update<ValueType, SetsType, WhereType>& _u,
+               const Where<ConditionType>& _where) {
+  static_assert(std::is_same_v<WhereType, Nothing>,
+                "You cannot call where(...) twice (but you can apply more "
+                "than one condition by combining them with && or ||).");
+  return Update<ValueType, SetsType, ConditionType>{.sets_ = _u.sets_,
+                                                    .where_ = _where.condition};
 }
 
 template <class ConditionType>

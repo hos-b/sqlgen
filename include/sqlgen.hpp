@@ -22,6 +22,7 @@
 #include "sqlgen/order_by.hpp"
 #include "sqlgen/patterns.hpp"
 #include "sqlgen/read.hpp"
+#include "sqlgen/update.hpp"
 #include "sqlgen/where.hpp"
 #include "sqlgen/write.hpp"
 

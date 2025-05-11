@@ -32,6 +32,10 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept;
 
 std::string type_to_sql(const dynamic::Type& _type) noexcept;
 
+std::string update_to_sql(const dynamic::Update& _stmt) noexcept;
+
+// ----------------------------------------------------------------------------
+
 std::string column_or_value_to_sql(
     const dynamic::ColumnOrValue& _col) noexcept {
   const auto handle_value = [](const auto& _v) -> std::string {
@@ -270,6 +274,9 @@ std::string to_sql_impl(const dynamic::Statement& _stmt) noexcept {
     } else if constexpr (std::is_same_v<S, dynamic::SelectFrom>) {
       return select_from_to_sql(_s);
 
+    } else if constexpr (std::is_same_v<S, dynamic::Update>) {
+      return update_to_sql(_s);
+
     } else {
       static_assert(rfl::always_false_v<S>, "Unsupported type.");
     }
@@ -302,6 +309,36 @@ std::string type_to_sql(const dynamic::Type& _type) noexcept {
       static_assert(rfl::always_false_v<T>, "Not all cases were covered.");
     }
   });
+}
+
+std::string update_to_sql(const dynamic::Update& _stmt) noexcept {
+  using namespace std::ranges::views;
+
+  const auto to_str = [](const auto& _set) -> std::string {
+    return "\"" + _set.col.name + "\" = " + column_or_value_to_sql(_set.to);
+  };
+
+  std::stringstream stream;
+
+  stream << "UPDATE ";
+
+  if (_stmt.table.schema) {
+    stream << "\"" << *_stmt.table.schema << "\".";
+  }
+  stream << "\"" << _stmt.table.name << "\"";
+
+  stream << " SET ";
+
+  stream << internal::strings::join(
+      ", ", internal::collect::vector(_stmt.sets | transform(to_str)));
+
+  if (_stmt.where) {
+    stream << " WHERE " << condition_to_sql(*_stmt.where);
+  }
+
+  stream << ";";
+
+  return stream.str();
 }
 
 }  // namespace sqlgen::sqlite

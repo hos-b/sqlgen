@@ -6,6 +6,7 @@
 
 #include "transpilation/Condition.hpp"
 #include "transpilation/Desc.hpp"
+#include "transpilation/Set.hpp"
 #include "transpilation/Value.hpp"
 #include "transpilation/conditions.hpp"
 
@@ -20,6 +21,17 @@ struct Col {
 
   /// Returns the column name.
   std::string name() const noexcept { return Name().str(); }
+
+  /// Defines a SET clause in an UPDATE statement.
+  template <class T>
+  auto set(const T& _to) const noexcept {
+    return transpilation::Set<Col<_name>, std::remove_cvref_t<T>>{.to = _to};
+  }
+
+  /// Defines a SET clause in an UPDATE statement.
+  auto set(const char* _to) const noexcept {
+    return transpilation::Set<Col<_name>, std::string>{.to = _to};
+  }
 };
 
 template <rfl::internal::StringLiteral _name>

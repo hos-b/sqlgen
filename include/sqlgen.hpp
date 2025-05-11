@@ -13,6 +13,7 @@
 #include "sqlgen/Range.hpp"
 #include "sqlgen/Ref.hpp"
 #include "sqlgen/Result.hpp"
+#include "sqlgen/Timestamp.hpp"
 #include "sqlgen/Varchar.hpp"
 #include "sqlgen/col.hpp"
 #include "sqlgen/delete_from.hpp"

@@ -32,81 +32,6 @@ if (!write_result) {
 }
 ```
 
-### Safe Value Access
-
-Access values safely using different methods:
-
-```cpp
-const auto result = sqlgen::read<std::vector<Person>>(conn);
-
-// Method 1: Using .value() (throws if error)
-const auto person = result.value();
-
-// Method 2: Using .value_or() (provides default if error)
-const auto person = result.value_or(std::vector<Person>());
-
-// Method 3: Using operator * (undefined if error)
-if (result) {
-    const auto& person = *result;
-}
-```
-
-### Monadic Operations
-
-Chain operations using monadic functions:
-
-```cpp
-// Transform successful results - note that this
-// is not a particularly efficient way of counting, 
-// but it highlights the point.
-const auto count = sqlgen::read<std::vector<Person>>(conn)
-    .transform([](const auto& people) {
-        return people.size();
-    });
-
-// Chain operations that might fail
-const auto result = sqlgen::sqlite::connect("database.db")
-    .and_then(sqlgen::read<std::vector<Person>>);
-```
-
-### Error Handling
-
-Handle errors explicitly:
-
-```cpp
-const auto result = sqlgen::read<std::vector<Person>>(conn);
-
-// Check for errors
-if (!result) {
-    const auto& error = result.error();
-    // Handle error...
-}
-
-// Transform errors
-const auto better_error = result.transform_error([](const auto& e) {
-    return sqlgen::error("Database error: " + e.what());
-});
-```
-
-## Advanced Usage
-
-### Error Creation and Handling
-
-Create and handle errors using the `error` helper function:
-
-```cpp
-// Create an error
-const auto err = sqlgen::error("Database connection failed");
-
-// Use in Result
-const auto result = sqlgen::Result<std::vector<Person>>(sqlgen::error("Failed to read data"));
-
-// Transform errors to provide more context
-const auto better_error = result.transform_error([](const auto& e) {
-    return sqlgen::error("Database operation failed: " + e.what());
-});
-```
-
 ### Monadic Operations
 
 The `Result` type supports several monadic operations for chaining operations:
@@ -184,12 +109,28 @@ if (!result) {
 }
 ```
 
+### Error Creation and Handling
+
+Create and handle errors using the `error` helper function:
+
+```cpp
+// Create an error
+const auto err = sqlgen::error("Database connection failed");
+
+// Use in Result
+const auto result = sqlgen::Result<std::vector<Person>>(sqlgen::error("Failed to read data"));
+
+// Transform errors to provide more context
+const auto better_error = result.transform_error([](const auto& e) {
+    return sqlgen::error("Database operation failed: " + e.what());
+});
+```
+
 ## Implementation Details
 
-- `sqlgen::Result` is implemented as an alias for `rfl::Result<T, sqlgen::Error>`
+- `sqlgen::Result` is implemented as an alias for `rfl::Result`
 - The implementation uses a union-like storage to hold either the value or error
 - Move and copy semantics are fully supported
-- The type is designed to be exception-safe
 - All operations that might fail return a `Result` type
 - The implementation is compatible with C++23's `std::expected` when available
 

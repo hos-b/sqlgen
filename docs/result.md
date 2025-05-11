@@ -3,7 +3,7 @@
 The `sqlgen::Result` type provides a way to handle errors without exceptions in sqlgen. It is an alias for `rfl::Result` and is used throughout sqlgen's API to handle potential failures in database operations.
 
 Note that `sqlgen::Result` and `rfl::Result` are deliberately designed
-to resemble C++ 23's `std::expected`.
+to resemble C++ 23's [std::expected](https://en.cppreference.com/w/cpp/utility/expected).
 
 ## Usage
 

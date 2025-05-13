@@ -19,7 +19,10 @@ namespace sqlgen {
 struct Connection {
   virtual ~Connection() = default;
 
-  /// Commits a statement,
+  /// Begins a transaction.
+  virtual Result<Nothing> begin_transaction() = 0;
+
+  /// Commits a transaction.
   virtual Result<Nothing> commit() = 0;
 
   /// Executes a statement. Note that in order for the statement to take effect,
@@ -28,6 +31,9 @@ struct Connection {
 
   /// Reads the results of a SelectFrom statement.
   virtual Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) = 0;
+
+  /// Rolls a transaction back.
+  virtual Result<Nothing> rollback() = 0;
 
   /// Transpiles a statement to a particular SQL dialect.
   virtual std::string to_sql(const dynamic::Statement& _stmt) = 0;

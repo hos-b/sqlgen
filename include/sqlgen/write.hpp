@@ -20,8 +20,8 @@
 namespace sqlgen {
 
 template <class ItBegin, class ItEnd>
-Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
-                      ItEnd _end) noexcept {
+Result<Ref<Connection>> write(const Ref<Connection>& _conn, ItBegin _begin,
+                              ItEnd _end) noexcept {
   using T =
       std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
 
@@ -59,7 +59,8 @@ Result<Nothing> write(const Ref<Connection>& _conn, ItBegin _begin,
   return _conn->execute(_conn->to_sql(create_table_stmt))
       .and_then(start_write)
       .and_then(write)
-      .and_then(end_write);
+      .and_then(end_write)
+      .transform([&](const auto&) { return _conn; });
 }
 
 template <class ItBegin, class ItEnd>

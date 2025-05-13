@@ -25,20 +25,34 @@ class Connection : public sqlgen::Connection {
 
  public:
   Connection(const Credentials& _credentials)
-      : conn_(make_conn(_credentials.to_str())), credentials_(_credentials) {}
+      : conn_(make_conn(_credentials.to_str())),
+        credentials_(_credentials),
+        transaction_started_(false) {}
 
   static rfl::Result<Ref<sqlgen::Connection>> make(
       const Credentials& _credentials) noexcept;
 
-  ~Connection() = default;
+  Connection(const Connection& _other) = delete;
 
-  Result<Nothing> commit() final { return execute("COMMIT;"); }
+  Connection(Connection&& _other) noexcept;
+
+  ~Connection();
+
+  Result<Nothing> begin_transaction() noexcept final;
+
+  Result<Nothing> commit() noexcept final;
 
   Result<Nothing> execute(const std::string& _sql) noexcept final {
     return exec(conn_, _sql).transform([](auto&&) { return Nothing{}; });
   }
 
+  Connection& operator=(const Connection& _other) = delete;
+
+  Connection& operator=(Connection&& _other) noexcept;
+
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
+
+  Result<Nothing> rollback() noexcept final;
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final {
     return postgres::to_sql_impl(_stmt);
@@ -63,6 +77,8 @@ class Connection : public sqlgen::Connection {
   ConnPtr conn_;
 
   Credentials credentials_;
+
+  bool transaction_started_;
 };
 
 }  // namespace sqlgen::postgres

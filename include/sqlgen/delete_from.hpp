@@ -11,16 +11,18 @@
 namespace sqlgen {
 
 template <class ValueType, class WhereType>
-Result<Nothing> delete_from_impl(const Ref<Connection>& _conn,
-                                 const WhereType& _where) {
+Result<Ref<Connection>> delete_from_impl(const Ref<Connection>& _conn,
+                                         const WhereType& _where) {
   const auto query =
       transpilation::to_delete_from<ValueType, WhereType>(_where);
-  return _conn->execute(_conn->to_sql(query));
+  return _conn->execute(_conn->to_sql(query)).transform([&](const auto&) {
+    return _conn;
+  });
 }
 
 template <class ValueType, class WhereType>
-Result<Nothing> delete_from_impl(const Result<Ref<Connection>>& _res,
-                                 const WhereType& _where) {
+Result<Ref<Connection>> delete_from_impl(const Result<Ref<Connection>>& _res,
+                                         const WhereType& _where) {
   return _res.and_then([&](const auto& _conn) {
     return delete_from_impl<ValueType, WhereType>(_conn, _where);
   });
@@ -28,7 +30,7 @@ Result<Nothing> delete_from_impl(const Result<Ref<Connection>>& _res,
 
 template <class ValueType, class WhereType = Nothing>
 struct DeleteFrom {
-  Result<Nothing> operator()(const auto& _conn) const noexcept {
+  Result<Ref<Connection>> operator()(const auto& _conn) const noexcept {
     try {
       return delete_from_impl<ValueType, WhereType>(_conn, where_);
     } catch (std::exception& e) {

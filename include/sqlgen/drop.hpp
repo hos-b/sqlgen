@@ -11,14 +11,17 @@
 namespace sqlgen {
 
 template <class ValueType>
-Result<Nothing> drop_impl(const Ref<Connection>& _conn, const bool _if_exists) {
+Result<Ref<Connection>> drop_impl(const Ref<Connection>& _conn,
+                                  const bool _if_exists) {
   const auto query = transpilation::to_drop<ValueType>(_if_exists);
-  return _conn->execute(_conn->to_sql(query));
+  return _conn->execute(_conn->to_sql(query)).transform([&](const auto&) {
+    return _conn;
+  });
 }
 
 template <class ValueType>
-Result<Nothing> drop_impl(const Result<Ref<Connection>>& _res,
-                          const bool _if_exists) {
+Result<Ref<Connection>> drop_impl(const Result<Ref<Connection>>& _res,
+                                  const bool _if_exists) {
   return _res.and_then([&](const auto& _conn) {
     return drop_impl<ValueType>(_conn, _if_exists);
   });
@@ -26,7 +29,7 @@ Result<Nothing> drop_impl(const Result<Ref<Connection>>& _res,
 
 template <class ValueType>
 struct Drop {
-  Result<Nothing> operator()(const auto& _conn) const noexcept {
+  Result<Ref<Connection>> operator()(const auto& _conn) const noexcept {
     try {
       return drop_impl<ValueType>(_conn, if_exists_);
     } catch (std::exception& e) {

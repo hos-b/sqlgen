@@ -24,7 +24,7 @@ Note that `conn` is actually a connection wrapped into an `sqlgen::Result<...>`.
 This means you can use monadic error handling and fit this into a single line:
 
 ```cpp
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlgen::sqlite::connect("database.db").and_then(
                         sqlgen::delete_from<Person>);
 ```
@@ -62,7 +62,7 @@ using namespace sqlgen;
 const auto query = delete_from<Person> |
                    where("first_name"_c == "Hugo");
 
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlite::connect("database.db").and_then(query);
 ```
 
@@ -101,6 +101,6 @@ const auto result = query(conn);
 ## Notes
 
 - The `where` clause is optional - if omitted, all records will be deleted
-- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling.
+- The `Result<Ref<Connection>>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling.
 - `"..."_c` refers to the name of the column
 

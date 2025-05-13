@@ -24,7 +24,7 @@ Note that `conn` is actually a connection wrapped into an `sqlgen::Result<...>`.
 This means you can use monadic error handling and fit this into a single line:
 
 ```cpp
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlgen::sqlite::connect("database.db").and_then(
                         sqlgen::drop<Person>);
 ```
@@ -56,7 +56,7 @@ using namespace sqlgen;
 
 const auto query = drop<Person> | if_exists;
 
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlite::connect("database.db").and_then(query);
 ```
 
@@ -92,6 +92,6 @@ const auto result = query(conn);
 ## Notes
 
 - The `if_exists` clause is optional - if omitted, the query will fail if the table doesn't exist
-- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling.
+- The `Result<Ref<Connection>>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling.
 - The table name is derived from the struct name (e.g., `Person` becomes `"Person"` in SQL)
 

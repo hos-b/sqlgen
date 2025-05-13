@@ -29,7 +29,7 @@ Note that `conn` is actually a connection wrapped into an `sqlgen::Result<...>`.
 This means you can use monadic error handling and fit this into a single line:
 
 ```cpp
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlgen::sqlite::connect("database.db").and_then(
                         update<Person>("age"_c.set(100), "first_name"_c.set("New Name")));
 ```
@@ -68,7 +68,7 @@ using namespace sqlgen;
 const auto query = update<Person>("age"_c.set(100)) |
                    where("first_name"_c == "Hugo");
 
-// sqlgen::Result<Nothing>
+// sqlgen::Result<Ref<Connection>>
 const auto result = sqlite::connect("database.db").and_then(query);
 ```
 
@@ -136,7 +136,7 @@ const auto result = query(conn);
 
 - You must specify at least one column to update
 - The `where` clause is optional - if omitted, all records will be updated
-- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling
+- The `Result<Ref<Connection>>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed or refer to the documentation on `sqlgen::Result<...>` for other forms of error handling
 - `"..."_c` refers to the name of the column
 - You can set columns to either literal values or other column values
 - The update operation is atomic - either all specified columns are updated or none are

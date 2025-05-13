@@ -23,18 +23,30 @@ class Connection : public sqlgen::Connection {
 
  public:
   Connection(const std::string& _fname)
-      : stmt_(nullptr), conn_(make_conn(_fname)) {}
+      : stmt_(nullptr), conn_(make_conn(_fname)), transaction_started_(false) {}
 
   static rfl::Result<Ref<sqlgen::Connection>> make(
       const std::string& _fname) noexcept;
 
-  ~Connection() = default;
+  Connection(const Connection& _other) = delete;
 
-  Result<Nothing> commit() final { return execute("COMMIT;"); }
+  Connection(Connection&& _other) noexcept;
+
+  ~Connection();
+
+  Result<Nothing> begin_transaction() noexcept final;
+
+  Result<Nothing> commit() noexcept final;
 
   Result<Nothing> execute(const std::string& _sql) noexcept final;
 
+  Connection& operator=(const Connection& _other) = delete;
+
+  Connection& operator=(Connection&& _other) noexcept;
+
   Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) final;
+
+  Result<Nothing> rollback() noexcept final;
 
   std::string to_sql(const dynamic::Statement& _stmt) noexcept final {
     return sqlite::to_sql_impl(_stmt);
@@ -58,6 +70,9 @@ class Connection : public sqlgen::Connection {
 
   /// The underlying sqlite3 connection.
   ConnPtr conn_;
+
+  /// Whether a transaction has been started.
+  bool transaction_started_;
 };
 
 }  // namespace sqlgen::sqlite

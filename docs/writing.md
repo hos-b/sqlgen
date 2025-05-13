@@ -81,7 +81,7 @@ The `write` function performs the following operations in sequence:
 
 - The function automatically creates the table, if it doesn't exist
 - Data is written in batches for better performance
-- The `Result<Nothing>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed
+- The `Result<Ref<Connection>>` type provides error handling; use `.value()` to extract the result (will throw an exception if there's an error) or handle errors as needed
 - The function has three overloads:
   1. Takes a connection reference and iterators
   2. Takes a `Result<Ref<Connection>>` and iterators

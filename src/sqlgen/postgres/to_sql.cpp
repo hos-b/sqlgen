@@ -225,7 +225,7 @@ std::string insert_to_sql(const dynamic::Insert& _stmt) noexcept {
       ", ",
       internal::collect::vector(_stmt.columns | transform(wrap_in_quotes)));
   return "COPY " + schema + "." + table + "(" + colnames +
-         ") FROM STDIN WITH DELIMITER '\t' NULL '\e' QUOTE '\a';";
+         ") FROM STDIN WITH DELIMITER '\t' NULL '\e' CSV QUOTE '\a';";
 }
 
 std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept {

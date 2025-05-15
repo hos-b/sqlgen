@@ -8,6 +8,8 @@ option(SQLGEN_SQLITE3 "Enable SQLite3 support" ON) # enabled by default
 
 option(SQLGEN_BUILD_TESTS "Build tests" OFF)
 
+option(SQLGEN_BUILD_DRY_TESTS_ONLY "Build 'dry' tests only (those that do not require a database connection)" OFF)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)

@@ -17,7 +17,7 @@ TEST(postgres, test_insert_dry) {
 
   const auto expected =
       "COPY \"public\".\"TestTable\"(\"field1\", \"field2\", \"id\", "
-      "\"nullable\") FROM STDIN WITH DELIMITER '\t' NULL '\e' QUOTE '\a';";
+      "\"nullable\") FROM STDIN WITH DELIMITER '\t' NULL '\e' CSV QUOTE '\a';";
 
   EXPECT_EQ(sqlgen::postgres::to_sql(query), expected);
 }

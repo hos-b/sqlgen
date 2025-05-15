@@ -15,7 +15,7 @@ struct Person {
   sqlgen::Timestamp<"%Y-%m-%d %H:%M:%S"> birthdate;
 };
 
-TEST(sqlite, test_birthdate) {
+TEST(sqlite, test_timestamp) {
   const auto people1 =
       std::vector<Person>({Person{.id = 0,
                                   .first_name = "Homer",

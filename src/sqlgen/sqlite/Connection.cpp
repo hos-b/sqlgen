@@ -54,7 +54,7 @@ Result<Nothing> Connection::execute(const std::string& _sql) noexcept {
   char* errmsg = nullptr;
   sqlite3_exec(conn_.get(), _sql.c_str(), nullptr, nullptr, &errmsg);
   if (errmsg) {
-    const auto err = error(errmsg);
+    const auto err = error("Executing '" + _sql + "' failed: " + errmsg);
     sqlite3_free(errmsg);
     return err;
   }

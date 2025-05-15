@@ -15,7 +15,8 @@ Result<Ref<PGresult>> exec(const Ref<PGconn>& _conn,
 
   if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK &&
       status != PGRES_COPY_IN) {
-    const auto err = error(PQresultErrorMessage(res));
+    const auto err =
+        error("Executing '" + _sql + "' failed: " + PQresultErrorMessage(res));
     PQclear(res);
     return err;
   }

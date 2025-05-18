@@ -17,6 +17,7 @@
 #include "sqlgen/begin_transaction.hpp"
 #include "sqlgen/col.hpp"
 #include "sqlgen/commit.hpp"
+#include "sqlgen/create_index.hpp"
 #include "sqlgen/create_table.hpp"
 #include "sqlgen/delete_from.hpp"
 #include "sqlgen/drop.hpp"

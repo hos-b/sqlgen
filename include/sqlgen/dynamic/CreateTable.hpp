@@ -13,7 +13,6 @@ struct CreateTable {
   Table table;
   std::vector<Column> columns;
   bool if_not_exists = true;
-  // TODO: Constraints
 };
 
 }  // namespace sqlgen::dynamic

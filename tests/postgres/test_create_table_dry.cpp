@@ -13,7 +13,9 @@ struct TestTable {
 };
 
 TEST(postgres, test_create_table_dry) {
-  const auto query = sqlgen::CreateTable<TestTable>{};
+  using namespace sqlgen;
+
+  const auto query = create_table<TestTable> | if_not_exists;
 
   const auto expected =
       R"(CREATE TABLE IF NOT EXISTS "TestTable" ("field1" TEXT NOT NULL, "field2" INTEGER NOT NULL, "id" INTEGER NOT NULL, "nullable" TEXT, PRIMARY KEY ("id"));)";

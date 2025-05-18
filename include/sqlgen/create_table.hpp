@@ -37,8 +37,8 @@ struct CreateTable {
   bool if_not_exists_;
 };
 
-template <class ContainerType>
-const auto create_table = CreateTable<ContainerType>{};
+template <class ValueType>
+const auto create_table = CreateTable<ValueType>{};
 
 };  // namespace sqlgen
 

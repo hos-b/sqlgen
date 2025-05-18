@@ -4,12 +4,15 @@
 #include <vector>
 
 #include "../Insert.hpp"
+#include "../create_index.hpp"
 #include "../create_table.hpp"
 #include "../delete_from.hpp"
 #include "../drop.hpp"
 #include "../dynamic/Statement.hpp"
 #include "../read.hpp"
 #include "../update.hpp"
+#include "columns_t.hpp"
+#include "to_create_index.hpp"
 #include "to_create_table.hpp"
 #include "to_delete_from.hpp"
 #include "to_drop.hpp"
@@ -22,6 +25,17 @@ namespace sqlgen::transpilation {
 
 template <class T>
 struct ToSQL;
+
+template <rfl::internal::StringLiteral _name, class ValueType, class WhereType,
+          class... ColTypes>
+struct ToSQL<CreateIndex<_name, ValueType, WhereType, ColTypes...>> {
+  dynamic::Statement operator()(const auto& _create_index) const {
+    return transpilation::to_create_index<
+        ValueType, columns_t<ValueType, ColTypes...>, WhereType>(
+        _name.str(), _create_index.unique_, _create_index.if_not_exists_,
+        _create_index.where_);
+  }
+};
 
 template <class T>
 struct ToSQL<CreateTable<T>> {

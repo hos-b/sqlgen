@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "Result.hpp"
+#include "create_index.hpp"
 #include "delete_from.hpp"
 #include "read.hpp"
 #include "transpilation/Limit.hpp"
@@ -16,6 +17,19 @@ template <class ConditionType>
 struct Where {
   ConditionType condition;
 };
+
+template <rfl::internal::StringLiteral _name, class ValueType, class WhereType,
+          class... ColTypes, class ConditionType>
+auto operator|(const CreateIndex<_name, ValueType, WhereType, ColTypes...>& _c,
+               const Where<ConditionType>& _where) {
+  static_assert(std::is_same_v<WhereType, Nothing>,
+                "You cannot call where(...) twice (but you can apply more "
+                "than one condition by combining them with && or ||).");
+  return CreateIndex<_name, ValueType, ConditionType, ColTypes...>{
+      .unique_ = _c.unique_,
+      .if_not_exists_ = _c.if_not_exists_,
+      .where_ = _where.condition};
+}
 
 template <class ValueType, class WhereType, class ConditionType>
 auto operator|(const DeleteFrom<ValueType, WhereType>& _d,

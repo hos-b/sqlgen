@@ -91,7 +91,7 @@ struct TestTable {
 };
 
 // Create table query
-const auto create_query = sqlgen::CreateTable<TestTable>{};
+const auto create_query = create_table<TestTable> | if_not_exists;
 const auto sql = postgres::to_sql(create_query);
 ```
 

@@ -2,7 +2,6 @@
 #define SQLGEN_HPP_
 
 #include "sqlgen/Connection.hpp"
-#include "sqlgen/CreateTable.hpp"
 #include "sqlgen/Flatten.hpp"
 #include "sqlgen/Insert.hpp"
 #include "sqlgen/Iterator.hpp"
@@ -18,9 +17,11 @@
 #include "sqlgen/begin_transaction.hpp"
 #include "sqlgen/col.hpp"
 #include "sqlgen/commit.hpp"
+#include "sqlgen/create_table.hpp"
 #include "sqlgen/delete_from.hpp"
 #include "sqlgen/drop.hpp"
 #include "sqlgen/if_exists.hpp"
+#include "sqlgen/if_not_exists.hpp"
 #include "sqlgen/limit.hpp"
 #include "sqlgen/order_by.hpp"
 #include "sqlgen/patterns.hpp"

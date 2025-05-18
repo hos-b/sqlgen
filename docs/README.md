@@ -14,6 +14,7 @@ Welcome to the sqlgen documentation. This guide provides detailed information ab
 
 - [sqlgen::read](reading.md) - How to read data from a database
 - [sqlgen::write](writing.md) - How to write data to a database
+- [sqlgen::create_table](create_table.md) - How to create a new table
 - [sqlgen::update](update.md) - How to update data in a table
 - [sqlgen::delete_from](delete_from.md) - How to delete data from a table
 - [sqlgen::drop](drop.md) - How to drop a table

@@ -103,14 +103,14 @@ if (PROJECT_IS_TOP_LEVEL)
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/sqlgen"
     )
 
-    file(GLOB_RECURSE RFL_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} "${CMAKE_CURRENT_LIST_DIR}/include/*" )
+    file(GLOB_RECURSE SQLGEN_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} "${CMAKE_CURRENT_LIST_DIR}/include/*" )
 
     target_sources(sqlgen
         PUBLIC
         FILE_SET sqlgen_headers
         TYPE HEADERS
         BASE_DIRS $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-        FILES ${RFL_HEADERS})
+        FILES ${SQLGEN_HEADERS})
 
     install(
         TARGETS sqlgen

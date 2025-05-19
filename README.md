@@ -15,7 +15,7 @@ sqlgen is a modern, type-safe ORM and SQL query generator for C++20, inspired by
 - 🚀 **High Performance**: Efficient batch operations and prepared statements
 - 📦 **Modern C++**: Leverages C++20 features for a clean, expressive API
 - 🔌 **Multiple Backends**: Support for PostgreSQL and SQLite
-- 🔍 **Reflection Integration**: Seamless integration with [reflect-cpp](https://github.com/getml/reflect-cpp)
+- 🔍 **Reflection Integration**: Seamless integration with [reflect-cpp](https://github.com/getml/reflect-cpp) 
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ sqlgen is a modern, type-safe ORM and SQL query generator for C++20, inspired by
 
 1. Install required dependencies:
 ```bash
-sudo apt-get install autoconf bison flex libpq-dev libsqlite3-dev
+sudo apt-get install autoconf bison flex
 ```
 
 2. Set up vcpkg:

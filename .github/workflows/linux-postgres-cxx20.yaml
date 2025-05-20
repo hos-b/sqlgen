@@ -1,6 +1,10 @@
 name: linux-postgres-cxx20 
 
-on: [ pull_request, workflow_dispatch ]
+on:
+  - pull_request
+  - push:
+      branches:
+        - 'main'
 
 env: 
     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"

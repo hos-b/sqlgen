@@ -2,6 +2,9 @@ name: linux-postgres-cxx20
 
 on: [ pull_request, workflow_dispatch ]
 
+env: 
+    VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
 jobs:
   linux:
     strategy:
@@ -21,8 +24,7 @@ jobs:
             compiler-version: 14
     name: "${{ github.job }} (${{ matrix.compiler }}-${{ matrix.compiler-version }})"
     runs-on: ubuntu-24.04
-    container: node:20-bookworm-slim
-
+    container: ubuntu-24.04
     services:
       postgres:
         image: postgres

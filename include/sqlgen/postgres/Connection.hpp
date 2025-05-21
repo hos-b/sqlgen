@@ -14,6 +14,7 @@
 #include "../Result.hpp"
 #include "../dynamic/Column.hpp"
 #include "../dynamic/Statement.hpp"
+#include "../dynamic/Write.hpp"
 #include "Credentials.hpp"
 #include "exec.hpp"
 #include "to_sql.hpp"
@@ -46,6 +47,11 @@ class Connection : public sqlgen::Connection {
     return exec(conn_, _sql).transform([](auto&&) { return Nothing{}; });
   }
 
+  Result<Nothing> insert(
+      const dynamic::Insert& _stmt,
+      const std::vector<std::vector<std::optional<std::string>>>&
+          _data) noexcept final;
+
   Connection& operator=(const Connection& _other) = delete;
 
   Connection& operator=(Connection&& _other) noexcept;
@@ -58,7 +64,7 @@ class Connection : public sqlgen::Connection {
     return postgres::to_sql_impl(_stmt);
   }
 
-  Result<Nothing> start_write(const dynamic::Insert& _stmt) final {
+  Result<Nothing> start_write(const dynamic::Write& _stmt) final {
     return execute(postgres::to_sql_impl(_stmt));
   }
 

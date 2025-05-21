@@ -8,9 +8,9 @@
 #include "IteratorBase.hpp"
 #include "Ref.hpp"
 #include "Result.hpp"
-#include "dynamic/Insert.hpp"
 #include "dynamic/SelectFrom.hpp"
 #include "dynamic/Statement.hpp"
+#include "dynamic/Write.hpp"
 
 namespace sqlgen {
 
@@ -29,6 +29,12 @@ struct Connection {
   /// you must call .commit() afterwards.
   virtual Result<Nothing> execute(const std::string& _sql) = 0;
 
+  /// Inserts data into the database using the INSERT statement.
+  /// More minimal approach than write, but can be used inside transactions.
+  virtual Result<Nothing> insert(
+      const dynamic::Insert& _stmt,
+      const std::vector<std::vector<std::optional<std::string>>>& _data) = 0;
+
   /// Reads the results of a SelectFrom statement.
   virtual Result<Ref<IteratorBase>> read(const dynamic::SelectFrom& _query) = 0;
 
@@ -39,7 +45,7 @@ struct Connection {
   virtual std::string to_sql(const dynamic::Statement& _stmt) = 0;
 
   /// Starts the write operation.
-  virtual Result<Nothing> start_write(const dynamic::Insert& _stmt) = 0;
+  virtual Result<Nothing> start_write(const dynamic::Write& _stmt) = 0;
 
   /// Ends the write operation and thus commits the results.
   virtual Result<Nothing> end_write() = 0;

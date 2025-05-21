@@ -13,6 +13,7 @@
 #include "../IteratorBase.hpp"
 #include "../Ref.hpp"
 #include "../Result.hpp"
+#include "../dynamic/Write.hpp"
 #include "to_sql.hpp"
 
 namespace sqlgen::sqlite {
@@ -40,6 +41,11 @@ class Connection : public sqlgen::Connection {
 
   Result<Nothing> execute(const std::string& _sql) noexcept final;
 
+  Result<Nothing> insert(
+      const dynamic::Insert& _stmt,
+      const std::vector<std::vector<std::optional<std::string>>>&
+          _data) noexcept final;
+
   Connection& operator=(const Connection& _other) = delete;
 
   Connection& operator=(Connection&& _other) noexcept;
@@ -52,7 +58,7 @@ class Connection : public sqlgen::Connection {
     return sqlite::to_sql_impl(_stmt);
   }
 
-  Result<Nothing> start_write(const dynamic::Insert& _stmt) final;
+  Result<Nothing> start_write(const dynamic::Write& _stmt) final;
 
   Result<Nothing> end_write() final;
 
@@ -62,6 +68,15 @@ class Connection : public sqlgen::Connection {
  private:
   /// Generates the underlying connection.
   static ConnPtr make_conn(const std::string& _fname);
+
+  /// Actually inserts data based on a prepared statement -
+  /// used by both .insert(...) and .write(...).
+  Result<Nothing> actual_insert(
+      const std::vector<std::vector<std::optional<std::string>>>& _data,
+      sqlite3_stmt* _stmt) const noexcept;
+
+  /// Generates a prepared statment, usually for inserts.
+  Result<StmtPtr> prepare_statement(const std::string& _sql) const noexcept;
 
  private:
   /// A prepared statement - needed for the read and write operations. Note that

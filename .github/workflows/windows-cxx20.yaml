@@ -1,12 +1,19 @@
-name: windows-sqlite-cxx20 
+name: windows-cxx20 
 
-on: [push, pull_request]
+on: [push]
 
 env: 
     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   windows-msvc:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: postgres
+          - db: sqlite
+    name: "(windows-${{ matrix.db }})"
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -23,6 +30,12 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: lukka/run-vcpkg@v11
       - name: Compile
+        if: matrix.db == 'postgres' 
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON 
+          cmake --build build --config Release -j4 
+      - name: Compile
+        if: matrix.db == 'sqlite' 
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=OFF 
           cmake --build build --config Release -j4 

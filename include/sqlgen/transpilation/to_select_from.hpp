@@ -9,34 +9,42 @@
 #include <vector>
 
 #include "../Result.hpp"
+#include "../dynamic/ColumnOrAggregation.hpp"
 #include "../dynamic/SelectFrom.hpp"
 #include "../dynamic/Table.hpp"
+#include "../internal/collect/vector.hpp"
+#include "check_aggregations.hpp"
 #include "get_schema.hpp"
 #include "get_tablename.hpp"
-#include "make_columns.hpp"
+#include "make_fields.hpp"
 #include "to_condition.hpp"
+#include "to_group_by.hpp"
 #include "to_limit.hpp"
 #include "to_order_by.hpp"
 
 namespace sqlgen::transpilation {
 
-template <class T, class WhereType = Nothing, class OrderByType = Nothing,
-          class LimitType = Nothing>
-  requires std::is_class_v<std::remove_cvref_t<T>> &&
-           std::is_aggregate_v<std::remove_cvref_t<T>>
-dynamic::SelectFrom to_select_from(const WhereType& _where = WhereType{},
-                                   const LimitType& _limit = LimitType{}) {
-  using NamedTupleType = rfl::named_tuple_t<std::remove_cvref_t<T>>;
-  using Fields = typename NamedTupleType::Fields;
+template <class StructType, class FieldsType, class WhereType,
+          class GroupByType, class OrderByType, class LimitType>
+  requires std::is_class_v<std::remove_cvref_t<StructType>> &&
+           std::is_aggregate_v<std::remove_cvref_t<StructType>>
+dynamic::SelectFrom to_select_from(const FieldsType& _fields,
+                                   const WhereType& _where,
+                                   const LimitType& _limit) {
+  static_assert(check_aggregations<StructType, FieldsType, GroupByType>(),
+                "The aggregations were not set up correctly. Please check the "
+                "trace for a more detailed error message.");
 
-  const auto columns = make_columns<Fields>(
-      std::make_integer_sequence<int, rfl::tuple_size_v<Fields>>());
+  const auto fields = make_fields<StructType, FieldsType>(
+      _fields,
+      std::make_integer_sequence<int, rfl::tuple_size_v<FieldsType>>());
 
   return dynamic::SelectFrom{
-      .table =
-          dynamic::Table{.name = get_tablename<T>(), .schema = get_schema<T>()},
-      .columns = columns,
-      .where = to_condition<std::remove_cvref_t<T>>(_where),
+      .table = dynamic::Table{.name = get_tablename<StructType>(),
+                              .schema = get_schema<StructType>()},
+      .fields = fields,
+      .where = to_condition<std::remove_cvref_t<StructType>>(_where),
+      .group_by = to_group_by<GroupByType>(),
       .order_by = to_order_by<OrderByType>(),
       .limit = to_limit(_limit)};
 }

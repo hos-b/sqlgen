@@ -1,6 +1,7 @@
 #ifndef SQLGEN_COL_HPP_
 #define SQLGEN_COL_HPP_
 
+#include <chrono>
 #include <rfl.hpp>
 #include <string>
 
@@ -13,6 +14,7 @@
 #include "transpilation/Set.hpp"
 #include "transpilation/Value.hpp"
 #include "transpilation/conditions.hpp"
+#include "transpilation/is_duration.hpp"
 #include "transpilation/to_transpilation_type.hpp"
 
 namespace sqlgen {
@@ -135,14 +137,20 @@ struct Col {
   }
 
   template <class T>
-  friend auto operator-(const Col&, const T& _op2) noexcept {
-    using OtherType = typename transpilation::ToTranspilationType<
-        std::remove_cvref_t<T>>::Type;
+  friend auto operator-(const Col& _op1, const T& _op2) noexcept {
+    if constexpr (transpilation::is_duration_v<T>) {
+      using DurationType = std::remove_cvref_t<T>;
+      return _op1 + DurationType(_op2.count() * (-1));
 
-    return transpilation::Operation<transpilation::Operator::minus,
-                                    transpilation::Col<_name>, OtherType>{
-        .operand1 = transpilation::Col<_name>{},
-        .operand2 = transpilation::to_transpilation_type(_op2)};
+    } else {
+      using OtherType = typename transpilation::ToTranspilationType<
+          std::remove_cvref_t<T>>::Type;
+
+      return transpilation::Operation<transpilation::Operator::minus,
+                                      transpilation::Col<_name>, OtherType>{
+          .operand1 = transpilation::Col<_name>{},
+          .operand2 = transpilation::to_transpilation_type(_op2)};
+    }
   }
 
   template <class T>
@@ -169,13 +177,23 @@ struct Col {
 
   template <class T>
   friend auto operator+(const Col&, const T& _op2) noexcept {
-    using OtherType = typename transpilation::ToTranspilationType<
-        std::remove_cvref_t<T>>::Type;
+    if constexpr (transpilation::is_duration_v<T>) {
+      using DurationType = std::remove_cvref_t<T>;
+      return transpilation::Operation<
+          transpilation::Operator::date_plus_duration,
+          transpilation::Col<_name>, rfl::Tuple<DurationType>>{
+          .operand1 = transpilation::Col<_name>{},
+          .operand2 = rfl::Tuple<DurationType>(_op2)};
 
-    return transpilation::Operation<transpilation::Operator::plus,
-                                    transpilation::Col<_name>, OtherType>{
-        .operand1 = transpilation::Col<_name>{},
-        .operand2 = transpilation::to_transpilation_type(_op2)};
+    } else {
+      using OtherType = typename transpilation::ToTranspilationType<
+          std::remove_cvref_t<T>>::Type;
+
+      return transpilation::Operation<transpilation::Operator::plus,
+                                      transpilation::Col<_name>, OtherType>{
+          .operand1 = transpilation::Col<_name>{},
+          .operand2 = transpilation::to_transpilation_type(_op2)};
+    }
   }
 };
 

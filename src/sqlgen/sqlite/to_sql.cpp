@@ -77,12 +77,48 @@ std::string aggregation_to_sql(
   });
 }
 
+std::string pad_with_zeros(const std::string& _str,
+                           const size_t _expected_length) {
+  if (_str.size() < _expected_length) {
+    return std::string(_expected_length - _str.size(), '0') + _str;
+  } else {
+    return _str;
+  }
+}
+
 std::string column_or_value_to_sql(
     const dynamic::ColumnOrValue& _col) noexcept {
   const auto handle_value = [](const auto& _v) -> std::string {
     using Type = std::remove_cvref_t<decltype(_v)>;
     if constexpr (std::is_same_v<Type, dynamic::String>) {
       return "'" + escape_single_quote(_v.val) + "'";
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Duration>) {
+      const auto prefix = std::string("'") + (_v.val >= 0 ? "+" : "-");
+      const auto val = std::abs(_v.val);
+      switch (_v.unit) {
+        case dynamic::TimeUnit::milliseconds: {
+          const auto h = (val / 3600000);
+          const auto m = (val / 60000) % 60;
+          const auto s = (val / 1000) % 60;
+          const auto ms = val % 1000;
+          return prefix + pad_with_zeros(std::to_string(h), 2) + ":" +
+                 pad_with_zeros(std::to_string(m), 2) + ":" +
+                 pad_with_zeros(std::to_string(s), 2) + "." +
+                 pad_with_zeros(std::to_string(ms), 3) + "'";
+        }
+
+        case dynamic::TimeUnit::weeks:
+          return prefix + std::to_string(val * 7) + " days'";
+
+        default:
+          return prefix + std::to_string(val) + " " +
+                 rfl::enum_to_string(_v.unit) + "'";
+      }
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Timestamp>) {
+      return std::to_string(_v.seconds_since_unix);
+
     } else {
       return std::to_string(_v.val);
     }
@@ -368,6 +404,26 @@ std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Cos>) {
       stream << "cos(" << operation_to_sql(*_s.op1) << ")";
 
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Day>) {
+      stream << "cast(strftime('%d', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
+
+    } else if constexpr (std::is_same_v<Type,
+                                        dynamic::Operation::DaysBetween>) {
+      stream << "julianday(" << operation_to_sql(*_s.op2) << ") - julianday("
+             << operation_to_sql(*_s.op1) << ")";
+
+    } else if constexpr (std::is_same_v<Type,
+                                        dynamic::Operation::DatePlusDuration>) {
+      stream << "datetime(" << operation_to_sql(*_s.date) << ", "
+             << internal::strings::join(
+                    ", ",
+                    internal::collect::vector(
+                        _s.durations | transform([](const auto& _d) {
+                          return column_or_value_to_sql(dynamic::Value{_d});
+                        })))
+             << ")";
+
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Divides>) {
       stream << "(" << operation_to_sql(*_s.op1) << ") / ("
              << operation_to_sql(*_s.op2) << ")";
@@ -377,6 +433,10 @@ std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
 
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Floor>) {
       stream << "floor(" << operation_to_sql(*_s.op1) << ")";
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Hour>) {
+      stream << "cast(strftime('%H', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
 
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Length>) {
       stream << "length(" << operation_to_sql(*_s.op1) << ")";
@@ -398,9 +458,17 @@ std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
       stream << "(" << operation_to_sql(*_s.op1) << ") - ("
              << operation_to_sql(*_s.op2) << ")";
 
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Minute>) {
+      stream << "cast(strftime('%M', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
+
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Mod>) {
       stream << "mod(" << operation_to_sql(*_s.op1) << ", "
              << operation_to_sql(*_s.op2) << ")";
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Month>) {
+      stream << "cast(strftime('%m', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
 
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Multiplies>) {
       stream << "(" << operation_to_sql(*_s.op1) << ") * ("
@@ -423,6 +491,10 @@ std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
       stream << "rtrim(" << operation_to_sql(*_s.op1) << ", "
              << operation_to_sql(*_s.op2) << ")";
 
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Second>) {
+      stream << "cast(strftime('%S', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
+
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Sin>) {
       stream << "sin(" << operation_to_sql(*_s.op1) << ")";
 
@@ -436,11 +508,22 @@ std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
       stream << "trim(" << operation_to_sql(*_s.op1) << ", "
              << operation_to_sql(*_s.op2) << ")";
 
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Unixepoch>) {
+      stream << "unixepoch(" << operation_to_sql(*_s.op1) << ", 'subsec')";
+
     } else if constexpr (std::is_same_v<Type, dynamic::Operation::Upper>) {
       stream << "upper(" << operation_to_sql(*_s.op1) << ")";
 
     } else if constexpr (std::is_same_v<Type, dynamic::Value>) {
       stream << column_or_value_to_sql(_s);
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Weekday>) {
+      stream << "cast(strftime('%w', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
+
+    } else if constexpr (std::is_same_v<Type, dynamic::Operation::Year>) {
+      stream << "cast(strftime('%Y', " << operation_to_sql(*_s.op1)
+             << ") as INT)";
 
     } else {
       static_assert(rfl::always_false_v<Type>, "Unsupported type.");

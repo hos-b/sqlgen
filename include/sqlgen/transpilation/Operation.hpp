@@ -9,6 +9,8 @@
 #include "Condition.hpp"
 #include "Operator.hpp"
 #include "conditions.hpp"
+#include "is_duration.hpp"
+#include "to_duration.hpp"
 #include "to_transpilation_type.hpp"
 
 namespace sqlgen::transpilation {
@@ -95,19 +97,23 @@ struct Operation {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return Operation<Operator::divides,
-                     Operation<_op, _Operand1Type, _Operand2Type>, OtherType>{
+    return Operation<Operator::divides, Operation, OtherType>{
         .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
   }
 
   template <class T>
   friend auto operator-(const Operation& _op1, const T& _op2) noexcept {
-    using OtherType = typename transpilation::ToTranspilationType<
-        std::remove_cvref_t<T>>::Type;
+    if constexpr (is_duration_v<T>) {
+      using DurationType = std::remove_cvref_t<T>;
+      return _op1 + DurationType(_op2.count() * (-1));
 
-    return Operation<Operator::minus,
-                     Operation<_op, _Operand1Type, _Operand2Type>, OtherType>{
-        .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
+    } else {
+      using OtherType = typename transpilation::ToTranspilationType<
+          std::remove_cvref_t<T>>::Type;
+
+      return Operation<Operator::minus, Operation, OtherType>{
+          .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
+    }
   }
 
   template <class T>
@@ -115,8 +121,7 @@ struct Operation {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return Operation<Operator::mod,
-                     Operation<_op, _Operand1Type, _Operand2Type>, OtherType>{
+    return Operation<Operator::mod, Operation, OtherType>{
         .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
   }
 
@@ -125,19 +130,36 @@ struct Operation {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return Operation<Operator::multiplies,
-                     Operation<_op, _Operand1Type, _Operand2Type>, OtherType>{
+    return Operation<Operator::multiplies, Operation, OtherType>{
         .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
   }
 
   template <class T>
   friend auto operator+(const Operation& _op1, const T& _op2) noexcept {
-    using OtherType = typename transpilation::ToTranspilationType<
-        std::remove_cvref_t<T>>::Type;
+    if constexpr (is_duration_v<T>) {
+      if constexpr (Operation::op == Operator::date_plus_duration) {
+        using DurationType = std::remove_cvref_t<T>;
+        const auto op2 =
+            rfl::tuple_cat(_op1.operand2, rfl::Tuple<DurationType>(_op2));
+        using Op2Type = std::remove_cvref_t<decltype(op2)>;
+        return transpilation::Operation<
+            transpilation::Operator::date_plus_duration, Operand1Type, Op2Type>{
+            .operand1 = _op1.operand1, .operand2 = op2};
 
-    return Operation<Operator::plus,
-                     Operation<_op, _Operand1Type, _Operand2Type>, OtherType>{
-        .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
+      } else {
+        using DurationType = std::remove_cvref_t<T>;
+        return Operation<Operator::date_plus_duration, Operation,
+                         rfl::Tuple<DurationType>>{
+            .operand1 = _op1, .operand2 = rfl::Tuple<DurationType>(_op2)};
+      }
+
+    } else {
+      using OtherType = typename transpilation::ToTranspilationType<
+          std::remove_cvref_t<T>>::Type;
+
+      return Operation<Operator::plus, Operation, OtherType>{
+          .operand1 = _op1, .operand2 = to_transpilation_type(_op2)};
+    }
   }
 };
 

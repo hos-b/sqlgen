@@ -8,6 +8,7 @@
 
 #include "../Ref.hpp"
 #include "Column.hpp"
+#include "ColumnOrValue.hpp"
 #include "Type.hpp"
 #include "Value.hpp"
 
@@ -68,6 +69,20 @@ struct Operation {
     Ref<Operation> op1;
   };
 
+  struct DatePlusDuration {
+    Ref<Operation> date;
+    std::vector<Duration> durations;
+  };
+
+  struct Day {
+    Ref<Operation> op1;
+  };
+
+  struct DaysBetween {
+    Ref<Operation> op1;
+    Ref<Operation> op2;
+  };
+
   struct Divides {
     Ref<Operation> op1;
     Ref<Operation> op2;
@@ -78,6 +93,10 @@ struct Operation {
   };
 
   struct Floor {
+    Ref<Operation> op1;
+  };
+
+  struct Hour {
     Ref<Operation> op1;
   };
 
@@ -107,9 +126,17 @@ struct Operation {
     Ref<Operation> op2;
   };
 
+  struct Minute {
+    Ref<Operation> op1;
+  };
+
   struct Mod {
     Ref<Operation> op1;
     Ref<Operation> op2;
+  };
+
+  struct Month {
+    Ref<Operation> op1;
   };
 
   struct Multiplies {
@@ -138,6 +165,10 @@ struct Operation {
     Ref<Operation> op2;
   };
 
+  struct Second {
+    Ref<Operation> op1;
+  };
+
   struct Sin {
     Ref<Operation> op1;
   };
@@ -155,15 +186,29 @@ struct Operation {
     Ref<Operation> op2;
   };
 
+  struct Unixepoch {
+    Ref<Operation> op1;
+  };
+
   struct Upper {
+    Ref<Operation> op1;
+  };
+
+  struct Weekday {
+    Ref<Operation> op1;
+  };
+
+  struct Year {
     Ref<Operation> op1;
   };
 
   using ReflectionType =
       rfl::TaggedUnion<"what", Abs, Aggregation, Cast, Ceil, Column, Coalesce,
-                       Concat, Cos, Divides, Exp, Floor, Length, Ln, Log2,
-                       Lower, LTrim, Minus, Mod, Multiplies, Plus, Replace,
-                       Round, RTrim, Sin, Sqrt, Tan, Trim, Upper, Value>;
+                       Concat, Cos, DatePlusDuration, Day, DaysBetween, Divides,
+                       Exp, Floor, Hour, Length, Ln, Log2, Lower, LTrim, Month,
+                       Minus, Minute, Mod, Multiplies, Plus, Replace, Round,
+                       RTrim, Second, Sin, Sqrt, Tan, Trim, Unixepoch, Upper,
+                       Value, Weekday, Year>;
 
   const ReflectionType& reflection() const { return val; }
 

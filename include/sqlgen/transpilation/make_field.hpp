@@ -1,6 +1,7 @@
 #ifndef SQLGEN_TRANSPILATION_MAKE_FIELD_HPP_
 #define SQLGEN_TRANSPILATION_MAKE_FIELD_HPP_
 
+#include <limits>
 #include <rfl.hpp>
 #include <type_traits>
 
@@ -19,8 +20,10 @@
 #include "all_columns_exist.hpp"
 #include "dynamic_aggregation_t.hpp"
 #include "dynamic_operator_t.hpp"
+#include "is_timestamp.hpp"
 #include "remove_as_t.hpp"
 #include "remove_nullable_t.hpp"
+#include "to_duration.hpp"
 #include "to_value.hpp"
 #include "underlying_t.hpp"
 
@@ -220,37 +223,89 @@ struct MakeField<StructType, Operation<Operator::cast, Operand1Type,
   }
 };
 
-template <class StructType, Operator _op, class... OperandTypes>
-  requires((_op == Operator::coalesce) || (_op == Operator::concat))
-struct MakeField<StructType, Operation<_op, rfl::Tuple<OperandTypes...>>> {
+template <class StructType, class Operand1Type, class... DurationTypes>
+struct MakeField<StructType,
+                 Operation<Operator::date_plus_duration, Operand1Type,
+                           rfl::Tuple<DurationTypes...>>> {
+  static constexpr bool is_aggregation = false;
+  static constexpr bool is_column = false;
+  static constexpr bool is_operation = true;
+
+  using Name = Nothing;
+  using Type = underlying_t<StructType, std::remove_cvref_t<Operand1Type>>;
+  using Operands = rfl::Tuple<Operand1Type, DurationTypes...>;
+
+  static_assert(is_timestamp_v<remove_nullable_t<Type>>,
+                "Must be a timestamp.");
+
+  dynamic::SelectFrom::Field operator()(const auto& _o) const {
+    return dynamic::SelectFrom::Field{
+        dynamic::Operation{dynamic::Operation::DatePlusDuration{
+            .date = Ref<dynamic::Operation>::make(
+                MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
+                    _o.operand1)
+                    .val),
+            .durations = rfl::apply(
+                [](const auto&... _ops) {
+                  return std::vector<dynamic::Duration>({to_duration(_ops)...});
+                },
+                _o.operand2)}}};
+  }
+};
+
+template <class StructType, Operator _op, class Operand1Type>
+  requires((num_operands_v<_op>) == 1)
+struct MakeField<StructType, Operation<_op, Operand1Type>> {
+  static constexpr bool is_aggregation = false;
+  static constexpr bool is_column = false;
+  static constexpr bool is_operation = true;
+
+  using Name = Nothing;
+  using Type = underlying_t<StructType, Operation<_op, Operand1Type>>;
+  using Operands = rfl::Tuple<Operand1Type>;
+
+  dynamic::SelectFrom::Field operator()(const auto& _o) const {
+    using DynamicOperatorType = dynamic_operator_t<_op>;
+    return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
+        .op1 = Ref<dynamic::Operation>::make(
+            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
+                _o.operand1)
+                .val)}}};
+  }
+};
+
+template <class StructType, Operator _op, class Operand1Type,
+          class Operand2Type>
+  requires((num_operands_v<_op>) == 2)
+struct MakeField<StructType, Operation<_op, Operand1Type, Operand2Type>> {
   static constexpr bool is_aggregation = false;
   static constexpr bool is_column = false;
   static constexpr bool is_operation = true;
 
   using Name = Nothing;
   using Type =
-      underlying_t<StructType, Operation<_op, rfl::Tuple<OperandTypes...>>>;
-  using Operands = rfl::Tuple<OperandTypes...>;
+      underlying_t<StructType, Operation<_op, Operand1Type, Operand2Type>>;
+  using Operands = rfl::Tuple<Operand1Type, Operand2Type>;
 
   dynamic::SelectFrom::Field operator()(const auto& _o) const {
     using DynamicOperatorType = dynamic_operator_t<_op>;
     return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
-        .ops = rfl::apply(
-            [](const auto&... _ops) {
-              return std::vector<Ref<dynamic::Operation>>(
-                  {Ref<dynamic::Operation>::make(
-                      MakeField<StructType,
-                                std::remove_cvref_t<OperandTypes>>{}(_ops)
-                          .val)...});
-            },
-            _o.operand1)}}};
+        .op1 = Ref<dynamic::Operation>::make(
+            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
+                _o.operand1)
+                .val),
+        .op2 = Ref<dynamic::Operation>::make(
+            MakeField<StructType, std::remove_cvref_t<Operand2Type>>{}(
+                _o.operand2)
+                .val)}}};
   }
 };
 
-template <class StructType, class Operand1Type, class Operand2Type,
-          class Operand3Type>
-struct MakeField<StructType, Operation<Operator::replace, Operand1Type,
-                                       Operand2Type, Operand3Type>> {
+template <class StructType, Operator _op, class Operand1Type,
+          class Operand2Type, class Operand3Type>
+  requires((num_operands_v<_op>) == 3)
+struct MakeField<StructType,
+                 Operation<_op, Operand1Type, Operand2Type, Operand3Type>> {
   static constexpr bool is_aggregation = false;
   static constexpr bool is_column = false;
   static constexpr bool is_operation = true;
@@ -279,130 +334,30 @@ struct MakeField<StructType, Operation<Operator::replace, Operand1Type,
   }
 };
 
-template <class StructType, class Operand1Type, class Operand2Type>
-struct MakeField<StructType,
-                 Operation<Operator::round, Operand1Type, Operand2Type>> {
+template <class StructType, Operator _op, class... OperandTypes>
+  requires((num_operands_v<_op>) == std::numeric_limits<size_t>::max())
+struct MakeField<StructType, Operation<_op, rfl::Tuple<OperandTypes...>>> {
   static constexpr bool is_aggregation = false;
   static constexpr bool is_column = false;
   static constexpr bool is_operation = true;
 
   using Name = Nothing;
   using Type =
-      underlying_t<StructType,
-                   Operation<Operator::round, Operand1Type, Operand2Type>>;
-  using Operands = rfl::Tuple<Operand1Type, Operand2Type>;
-
-  dynamic::SelectFrom::Field operator()(const auto& _o) const {
-    return dynamic::SelectFrom::Field{
-        dynamic::Operation{dynamic::Operation::Round{
-            .op1 = Ref<dynamic::Operation>::make(
-                MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
-                    _o.operand1)
-                    .val),
-            .op2 = Ref<dynamic::Operation>::make(
-                MakeField<StructType, std::remove_cvref_t<Operand2Type>>{}(
-                    _o.operand2)
-                    .val)}}};
-  }
-};
-
-template <class StructType, Operator _op, class Operand1Type>
-  requires((num_operands_v<_op>) == 1 &&
-           (operator_category_v<_op>) == OperatorCategory::string)
-struct MakeField<StructType, Operation<_op, Operand1Type>> {
-  static constexpr bool is_aggregation = false;
-  static constexpr bool is_column = false;
-  static constexpr bool is_operation = true;
-
-  using Name = Nothing;
-  using Type = underlying_t<StructType, Operation<_op, Operand1Type>>;
-  using Operands = rfl::Tuple<Operand1Type>;
+      underlying_t<StructType, Operation<_op, rfl::Tuple<OperandTypes...>>>;
+  using Operands = rfl::Tuple<OperandTypes...>;
 
   dynamic::SelectFrom::Field operator()(const auto& _o) const {
     using DynamicOperatorType = dynamic_operator_t<_op>;
     return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
-        .op1 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
-                _o.operand1)
-                .val)}}};
-  }
-};
-
-template <class StructType, Operator _op, class Operand1Type,
-          class Operand2Type>
-  requires((num_operands_v<_op>) == 2 &&
-           (operator_category_v<_op>) == OperatorCategory::string)
-struct MakeField<StructType, Operation<_op, Operand1Type, Operand2Type>> {
-  static constexpr bool is_aggregation = false;
-  static constexpr bool is_column = false;
-  static constexpr bool is_operation = true;
-
-  using Name = Nothing;
-  using Type =
-      underlying_t<StructType, Operation<_op, Operand1Type, Operand2Type>>;
-  using Operands = rfl::Tuple<Operand1Type, Operand2Type>;
-
-  dynamic::SelectFrom::Field operator()(const auto& _o) const {
-    using DynamicOperatorType = dynamic_operator_t<_op>;
-    return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
-        .op1 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
-                _o.operand1)
-                .val),
-        .op2 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand2Type>>{}(
-                _o.operand2)
-                .val)}}};
-  }
-};
-
-template <class StructType, Operator _op, class Operand1Type>
-  requires((num_operands_v<_op>) == 1 &&
-           (operator_category_v<_op>) == OperatorCategory::numerical)
-struct MakeField<StructType, Operation<_op, Operand1Type>> {
-  static constexpr bool is_aggregation = false;
-  static constexpr bool is_column = false;
-  static constexpr bool is_operation = true;
-
-  using Name = Nothing;
-  using Type = underlying_t<StructType, Operation<_op, Operand1Type>>;
-  using Operands = rfl::Tuple<Operand1Type>;
-
-  dynamic::SelectFrom::Field operator()(const auto& _o) const {
-    using DynamicOperatorType = dynamic_operator_t<_op>;
-    return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
-        .op1 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
-                _o.operand1)
-                .val)}}};
-  }
-};
-
-template <class StructType, Operator _op, class Operand1Type,
-          class Operand2Type>
-  requires((num_operands_v<_op>) == 2 &&
-           (operator_category_v<_op>) == OperatorCategory::numerical)
-struct MakeField<StructType, Operation<_op, Operand1Type, Operand2Type>> {
-  static constexpr bool is_aggregation = false;
-  static constexpr bool is_column = false;
-  static constexpr bool is_operation = true;
-
-  using Name = Nothing;
-  using Type =
-      underlying_t<StructType, Operation<_op, Operand1Type, Operand2Type>>;
-  using Operands = rfl::Tuple<Operand1Type, Operand2Type>;
-
-  dynamic::SelectFrom::Field operator()(const auto& _o) const {
-    using DynamicOperatorType = dynamic_operator_t<_op>;
-    return dynamic::SelectFrom::Field{dynamic::Operation{DynamicOperatorType{
-        .op1 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand1Type>>{}(
-                _o.operand1)
-                .val),
-        .op2 = Ref<dynamic::Operation>::make(
-            MakeField<StructType, std::remove_cvref_t<Operand2Type>>{}(
-                _o.operand2)
-                .val)}}};
+        .ops = rfl::apply(
+            [](const auto&... _ops) {
+              return std::vector<Ref<dynamic::Operation>>(
+                  {Ref<dynamic::Operation>::make(
+                      MakeField<StructType,
+                                std::remove_cvref_t<OperandTypes>>{}(_ops)
+                          .val)...});
+            },
+            _o.operand1)}}};
   }
 };
 

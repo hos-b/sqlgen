@@ -14,6 +14,7 @@
 #include "all_columns_exist.hpp"
 #include "dynamic_operator_t.hpp"
 #include "is_nullable.hpp"
+#include "is_timestamp.hpp"
 #include "remove_nullable_t.hpp"
 #include "remove_reflection_t.hpp"
 
@@ -81,6 +82,35 @@ struct Underlying<T, Operation<Operator::concat, rfl::Tuple<OperandTypes...>>> {
                          std::optional<std::string>, std::string>;
 };
 
+template <class T, class Operand1Type, class... DurationTypes>
+struct Underlying<T, Operation<Operator::date_plus_duration, Operand1Type,
+                               rfl::Tuple<DurationTypes...>>> {
+  using Underlying1 = typename Underlying<T, Operand1Type>::Type;
+
+  static_assert(is_timestamp_v<remove_nullable_t<Underlying1>>,
+                "Must be a timestamp");
+
+  using Type = std::conditional_t<is_nullable_v<Underlying1>,
+                                  std::optional<remove_nullable_t<Underlying1>>,
+                                  Underlying1>;
+};
+
+template <class T, class Operand1Type, class Operand2Type>
+struct Underlying<
+    T, Operation<Operator::days_between, Operand1Type, Operand2Type>> {
+  using Underlying1 = typename Underlying<T, Operand1Type>::Type;
+  using Underlying2 = typename Underlying<T, Operand2Type>::Type;
+
+  static_assert(is_timestamp_v<remove_nullable_t<Underlying1>>,
+                "Must be a timestamp");
+  static_assert(is_timestamp_v<remove_nullable_t<Underlying2>>,
+                "Must be a timestamp");
+
+  using Type = std::conditional_t<is_nullable_v<Underlying1> ||
+                                      is_nullable_v<Underlying2>,
+                                  std::optional<double>, double>;
+};
+
 template <class T, class Operand1Type, class Operand2Type, class Operand3Type>
 struct Underlying<
     T, Operation<Operator::replace, Operand1Type, Operand2Type, Operand3Type>> {
@@ -117,6 +147,31 @@ struct Underlying<T, Operation<Operator::round, Operand1Type, Operand2Type>> {
   static_assert(std::is_integral_v<Underlying2>, "Must be an integral type");
 
   using Type = Underlying1;
+};
+
+template <class T, class Operand1Type>
+struct Underlying<T, Operation<Operator::unixepoch, Operand1Type>> {
+  using Underlying1 = typename Underlying<T, Operand1Type>::Type;
+
+  static_assert(is_timestamp_v<remove_nullable_t<Underlying1>>,
+                "Must be a timestamp");
+
+  using Type = std::conditional_t<is_nullable_v<Underlying1>,
+                                  std::optional<time_t>, time_t>;
+};
+
+template <class T, Operator _op, class Operand1Type>
+  requires((num_operands_v<_op>) == 1 &&
+           (operator_category_v<_op>) == OperatorCategory::date_part)
+struct Underlying<T, Operation<_op, Operand1Type>> {
+  using Underlying1 =
+      typename Underlying<T, std::remove_cvref_t<Operand1Type>>::Type;
+
+  static_assert(is_timestamp_v<remove_nullable_t<Underlying1>>,
+                "Must be a timestamp");
+
+  using Type =
+      std::conditional_t<is_nullable_v<Underlying1>, std::optional<int>, int>;
 };
 
 template <class T, Operator _op, class Operand1Type>
@@ -196,7 +251,7 @@ struct Underlying<T, Operation<_op, Operand1Type, Operand2Type>> {
 
 template <class T, class _Type>
 struct Underlying<T, Value<_Type>> {
-  using Type = _Type;
+  using Type = remove_reflection_t<_Type>;
 };
 
 template <class T, class U>

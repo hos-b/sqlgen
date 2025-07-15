@@ -2,6 +2,7 @@
 #include <rfl.hpp>
 #include <sstream>
 
+#include "sqlgen/dynamic/Join.hpp"
 #include "sqlgen/dynamic/Operation.hpp"
 #include "sqlgen/internal/collect/vector.hpp"
 #include "sqlgen/internal/strings/strings.hpp"
@@ -37,6 +38,8 @@ std::string field_to_str(const dynamic::SelectFrom::Field& _field) noexcept;
 template <class InsertOrWrite>
 std::string insert_or_write_to_sql(const InsertOrWrite& _stmt) noexcept;
 
+std::string join_to_sql(const dynamic::Join& _stmt) noexcept;
+
 std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept;
 
 std::string properties_to_sql(const dynamic::types::Properties& _p) noexcept;
@@ -46,6 +49,16 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept;
 std::string type_to_sql(const dynamic::Type& _type) noexcept;
 
 std::string update_to_sql(const dynamic::Update& _stmt) noexcept;
+
+// ----------------------------------------------------------------------------
+
+inline std::string get_name(const dynamic::Column& _col) { return _col.name; }
+
+inline std::string wrap_in_quotes(const std::string& _name) noexcept {
+  return "\"" + _name + "\"";
+}
+
+// ----------------------------------------------------------------------------
 
 std::string aggregation_to_sql(
     const dynamic::Aggregation& _aggregation) noexcept {
@@ -127,7 +140,11 @@ std::string column_or_value_to_sql(
   return _col.visit([&](const auto& _c) -> std::string {
     using Type = std::remove_cvref_t<decltype(_c)>;
     if constexpr (std::is_same_v<Type, dynamic::Column>) {
-      return "\"" + _c.name + "\"";
+      if (_c.alias) {
+        return *_c.alias + "." + wrap_in_quotes(_c.name);
+      } else {
+        return wrap_in_quotes(_c.name);
+      }
     } else {
       return _c.val.visit(handle_value);
     }
@@ -360,6 +377,35 @@ std::string insert_or_write_to_sql(const InsertOrWrite& _stmt) noexcept {
   return stream.str();
 }
 
+std::string join_to_sql(const dynamic::Join& _stmt) noexcept {
+  std::stringstream stream;
+
+  stream << internal::strings::to_upper(internal::strings::replace_all(
+                rfl::enum_to_string(_stmt.how), "_", " "))
+         << " ";
+
+  stream << _stmt.table_or_query.visit(
+                [](const auto& _table_or_query) -> std::string {
+                  using Type = std::remove_cvref_t<decltype(_table_or_query)>;
+                  if constexpr (std::is_same_v<Type, dynamic::Table>) {
+                    return wrap_in_quotes(_table_or_query.name);
+                  } else {
+                    return "(" + select_from_to_sql(*_table_or_query) + ")";
+                  }
+                })
+         << " ";
+
+  stream << _stmt.alias << " ";
+
+  if (_stmt.on) {
+    stream << "ON " << condition_to_sql(*_stmt.on);
+  } else {
+    stream << "ON 1 = 1";
+  }
+
+  return stream.str();
+}
+
 std::string operation_to_sql(const dynamic::Operation& _stmt) noexcept {
   using namespace std::ranges::views;
   return _stmt.val.visit([](const auto& _s) -> std::string {
@@ -542,7 +588,7 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept {
   using namespace std::ranges::views;
 
   const auto order_by_to_str = [](const auto& _w) -> std::string {
-    return "\"" + _w.column.name + "\"" + (_w.desc ? " DESC" : "");
+    return column_or_value_to_sql(_w.column) + (_w.desc ? " DESC" : "");
   };
 
   std::stringstream stream;
@@ -553,9 +599,20 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept {
 
   stream << " FROM ";
   if (_stmt.table.schema) {
-    stream << "\"" << *_stmt.table.schema << "\".";
+    stream << wrap_in_quotes(*_stmt.table.schema) << ".";
   }
-  stream << "\"" << _stmt.table.name << "\"";
+  stream << wrap_in_quotes(_stmt.table.name);
+
+  if (_stmt.alias) {
+    stream << " " << *_stmt.alias;
+  }
+
+  if (_stmt.joins) {
+    stream << " "
+           << internal::strings::join(
+                  " ", internal::collect::vector(*_stmt.joins |
+                                                 transform(join_to_sql)));
+  }
 
   if (_stmt.where) {
     stream << " WHERE " << condition_to_sql(*_stmt.where);
@@ -579,8 +636,6 @@ std::string select_from_to_sql(const dynamic::SelectFrom& _stmt) noexcept {
   if (_stmt.limit) {
     stream << " LIMIT " << _stmt.limit->val;
   }
-
-  stream << ";";
 
   return stream.str();
 }

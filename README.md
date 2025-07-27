@@ -23,6 +23,16 @@ Together, reflect-cpp and sqlgen enable reliable and efficient ETL pipelines.
 - 🔌 **Multiple Backends**: Support for PostgreSQL and SQLite
 - 🔍 **Reflection Integration**: Seamless integration with [reflect-cpp](https://github.com/getml/reflect-cpp) 
 
+## Supported databases 
+
+The following table lists the databases currently supported by sqlgen and the underlying libraries used:
+
+| Database      | Library                                                                  | Version      | License       | Remarks                                              |
+|---------------|--------------------------------------------------------------------------|--------------|---------------| -----------------------------------------------------|
+| MySQL/MariaDB | [libmariadb](https://github.com/mariadb-corporation/mariadb-connector-c) | >= 3.4.5     | LGPL          |                                                      |
+| PostgreSQL    | [libpq](https://github.com/postgres/postgres)                            | >= 16.4      | PostgreSQL    | Will work for all libpq-compatible databases         |
+| sqlite        | [sqlite](https://sqlite.org/index.html)                                  | >= 3.49.1    | Public Domain |                                                      |
+
 ## Quick Start
 
 ### Installation using vcpkg
@@ -47,6 +57,14 @@ cmake --build build -j 4  # gcc, clang
 cmake --build build --config Release -j 4  # MSVC
 ```
 
+This will build the static library. To build the shared library 
+add `-DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=...` to the first line.
+Run `./vcpkg/vcpkg help triplets` to view all supported triplets. 
+Common triplets for shared libraries are `x64-linux-dynamic`, 
+`arm64-osx-dynamic` or `x64-osx-dynamic`.   
+
+Add `-DSQLGEN_BUILD_MYSQL=ON` to support MySQL/MariaDB.
+
 4. Include in your CMake project:
 ```cmake
 find_package(sqlgen REQUIRED)
@@ -68,6 +86,17 @@ For older versions of pip, you can also use `pip` instead of `pipx`.
 
 ```bash
 conan build . --build=missing -s compiler.cppstd=gnu20
+```
+
+This will build the static library. To build the shared library,
+add `-o */*:shared=True`. 
+
+Add `-o sqlgen/*:with_mysql=True` to support MySQL/MariaDB.
+
+3. Include in your CMake project:
+```cmake
+find_package(sqlgen REQUIRED)
+target_link_libraries(your_target PRIVATE sqlgen::sqlgen)
 ```
 
 You can call `conan inspect .` to get an overview of the supported options.

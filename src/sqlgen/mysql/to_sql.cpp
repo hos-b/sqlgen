@@ -43,6 +43,14 @@ std::string escape_single_quote(const std::string& _str) noexcept;
 
 std::string field_to_str(const dynamic::SelectFrom::Field& _field) noexcept;
 
+std::string foreign_keys_to_sql(
+    const std::vector<
+        std::pair<std::string, dynamic::types::ForeignKeyReference>>&
+        _foreign_keys) noexcept;
+
+std::vector<std::pair<std::string, dynamic::types::ForeignKeyReference>>
+get_foreign_keys(const dynamic::CreateTable& _stmt) noexcept;
+
 std::vector<std::string> get_primary_keys(
     const dynamic::CreateTable& _stmt) noexcept;
 
@@ -320,6 +328,12 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept {
            << ")";
   }
 
+  const auto foreign_keys = get_foreign_keys(_stmt);
+
+  if (foreign_keys.size() != 0) {
+    stream << ", " << foreign_keys_to_sql(foreign_keys);
+  }
+
   stream << ");";
 
   return stream.str();
@@ -379,6 +393,10 @@ std::string drop_to_sql(const dynamic::Drop& _stmt) noexcept {
   }
   stream << wrap_in_quotes(_stmt.table.name);
 
+  if (_stmt.cascade) {
+    stream << " CASCADE";
+  }
+
   stream << ";";
 
   return stream.str();
@@ -398,6 +416,47 @@ std::string field_to_str(const dynamic::SelectFrom::Field& _field) noexcept {
   }
 
   return stream.str();
+}
+
+std::string foreign_keys_to_sql(
+    const std::vector<
+        std::pair<std::string, dynamic::types::ForeignKeyReference>>&
+        _foreign_keys) noexcept {
+  using namespace std::ranges::views;
+
+  const auto to_str =
+      [](const std::pair<std::string, dynamic::types::ForeignKeyReference>&
+             _p) {
+        return "FOREIGN KEY (" + wrap_in_quotes(_p.first) + ") REFERENCES " +
+               wrap_in_quotes(_p.second.table) + "(" +
+               wrap_in_quotes(_p.second.column) + ")";
+      };
+
+  return internal::strings::join(
+      ", ", internal::collect::vector(_foreign_keys | transform(to_str)));
+}
+
+std::vector<std::pair<std::string, dynamic::types::ForeignKeyReference>>
+get_foreign_keys(const dynamic::CreateTable& _stmt) noexcept {
+  using namespace std::ranges::views;
+
+  const auto get_foreign_key_ref = [](const auto& _col)
+      -> std::optional<dynamic::types::ForeignKeyReference> {
+    return _col.type.visit(
+        [](const auto& _t) { return _t.properties.foreign_key_reference; });
+  };
+
+  const auto has_reference = [&](const auto& _col) -> bool {
+    return (true && get_foreign_key_ref(_col));
+  };
+
+  const auto to_pair = [&](const auto& _col)
+      -> std::pair<std::string, dynamic::types::ForeignKeyReference> {
+    return std::make_pair(get_name(_col), get_foreign_key_ref(_col).value());
+  };
+
+  return internal::collect::vector(_stmt.columns | filter(has_reference) |
+                                   transform(to_pair));
 }
 
 std::vector<std::string> get_primary_keys(

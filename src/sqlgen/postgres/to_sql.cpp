@@ -29,6 +29,8 @@ std::string create_index_to_sql(const dynamic::CreateIndex& _stmt) noexcept;
 
 std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 
+std::string create_as_to_sql(const dynamic::CreateAs& _stmt) noexcept;
+
 std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept;
 
 std::string drop_to_sql(const dynamic::Drop& _stmt) noexcept;
@@ -279,6 +281,34 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept {
   return stream.str();
 }
 
+std::string create_as_to_sql(const dynamic::CreateAs& _stmt) noexcept {
+  std::stringstream stream;
+
+  stream << "CREATE ";
+
+  if (_stmt.or_replace) {
+    stream << "OR REPLACE ";
+  }
+
+  stream << internal::strings::replace_all(
+                internal::strings::to_upper(rfl::enum_to_string(_stmt.what)),
+                "_", " ")
+         << " ";
+
+  if (_stmt.if_not_exists) {
+    stream << "IF NOT EXISTS ";
+  }
+
+  if (_stmt.table_or_view.schema) {
+    stream << wrap_in_quotes(*_stmt.table_or_view.schema) << ".";
+  }
+  stream << wrap_in_quotes(_stmt.table_or_view.name) << " AS ";
+
+  stream << select_from_to_sql(_stmt.query);
+
+  return stream.str();
+}
+
 std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept {
   std::stringstream stream;
 
@@ -301,7 +331,11 @@ std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept {
 std::string drop_to_sql(const dynamic::Drop& _stmt) noexcept {
   std::stringstream stream;
 
-  stream << "DROP TABLE ";
+  stream << "DROP "
+         << internal::strings::replace_all(
+                internal::strings::to_upper(rfl::enum_to_string(_stmt.what)),
+                "_", " ")
+         << " ";
 
   if (_stmt.if_exists) {
     stream << "IF EXISTS ";
@@ -650,6 +684,9 @@ std::string to_sql_impl(const dynamic::Statement& _stmt) noexcept {
 
     } else if constexpr (std::is_same_v<S, dynamic::CreateTable>) {
       return create_table_to_sql(_s);
+
+    } else if constexpr (std::is_same_v<S, dynamic::CreateAs>) {
+      return create_as_to_sql(_s);
 
     } else if constexpr (std::is_same_v<S, dynamic::DeleteFrom>) {
       return delete_from_to_sql(_s);

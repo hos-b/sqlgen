@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "../create_as.hpp"
 #include "../create_index.hpp"
 #include "../create_table.hpp"
 #include "../delete_from.hpp"
@@ -28,6 +29,24 @@ namespace sqlgen::transpilation {
 
 template <class T>
 struct ToSQL;
+
+template <class ValueType, class TableOrQueryType, class AliasType,
+          class FieldsType, class JoinsType, class WhereType, class GroupByType,
+          class OrderByType, class LimitType, class ToType>
+struct ToSQL<
+    CreateAs<ValueType, TableOrQueryType, AliasType, FieldsType, JoinsType,
+             WhereType, GroupByType, OrderByType, LimitType, ToType>> {
+  dynamic::Statement operator()(const auto& _create_as) const {
+    using TableTupleType =
+        transpilation::table_tuple_t<ValueType, AliasType, JoinsType>;
+    return to_create_as<ValueType, TableTupleType, AliasType, FieldsType,
+                        TableOrQueryType, JoinsType, WhereType, GroupByType,
+                        OrderByType, LimitType>(
+        _create_as.what_, _create_as.or_replace_, _create_as.if_not_exists_,
+        _create_as.as_.fields_, _create_as.as_.from_, _create_as.as_.joins_,
+        _create_as.as_.where_, _create_as.as_.limit_);
+  }
+};
 
 template <rfl::internal::StringLiteral _name, class ValueType, class WhereType,
           class... ColTypes>
@@ -57,7 +76,7 @@ struct ToSQL<DeleteFrom<T, WhereType>> {
 template <class T>
 struct ToSQL<Drop<T>> {
   dynamic::Statement operator()(const auto& _drop) const {
-    return to_drop<T>(_drop.if_exists_, _drop.cascade_);
+    return to_drop<T>(_drop.what_, _drop.if_exists_, _drop.cascade_);
   }
 };
 

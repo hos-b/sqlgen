@@ -3,6 +3,7 @@
 
 #include <rfl.hpp>
 
+#include "CreateAs.hpp"
 #include "CreateIndex.hpp"
 #include "CreateTable.hpp"
 #include "DeleteFrom.hpp"
@@ -14,8 +15,9 @@
 
 namespace sqlgen::dynamic {
 
-using Statement = rfl::TaggedUnion<"stmt", CreateIndex, CreateTable, DeleteFrom,
-                                   Drop, Insert, SelectFrom, Update, Write>;
+using Statement =
+    rfl::TaggedUnion<"stmt", CreateAs, CreateIndex, CreateTable, DeleteFrom,
+                     Drop, Insert, SelectFrom, Update, Write>;
 
 }  // namespace sqlgen::dynamic
 

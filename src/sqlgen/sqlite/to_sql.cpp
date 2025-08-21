@@ -742,6 +742,10 @@ std::string type_to_sql(const dynamic::Type& _type) noexcept {
       return "TEXT";
     } else if constexpr (std::is_same_v<T, dynamic::types::Dynamic>) {
       return _t.type_name;
+    } else if constexpr (std::is_same_v<T, dynamic::types::Enum>) {
+      static_assert(
+          rfl::always_false_v<T>,
+          "Enums are not supported in sqlite. Please use an integer instead.");
     } else {
       static_assert(rfl::always_false_v<T>, "Not all cases were covered.");
     }

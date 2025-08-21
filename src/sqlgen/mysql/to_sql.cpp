@@ -82,6 +82,10 @@ inline std::string wrap_in_quotes(const std::string& _name) noexcept {
   return "`" + _name + "`";
 }
 
+inline std::string wrap_in_single_quotes(const std::string& _name) noexcept {
+  return "'" + _name + "'";
+}
+
 // ----------------------------------------------------------------------------
 
 std::string aggregation_to_sql(
@@ -848,6 +852,14 @@ std::string type_to_sql(const dynamic::Type& _type) noexcept {
                          std::is_same_v<T, dynamic::types::Int64> ||
                          std::is_same_v<T, dynamic::types::UInt64>) {
       return "BIGINT";
+
+    } else if constexpr (std::is_same_v<T, dynamic::types::Enum>) {
+      return "ENUM(" +
+             internal::strings::join(
+                 ", ", internal::collect::vector(_t.values |
+                                                 std::ranges::views::transform(
+                                                     wrap_in_single_quotes))) +
+             ")";
 
     } else if constexpr (std::is_same_v<T, dynamic::types::Float32> ||
                          std::is_same_v<T, dynamic::types::Float64>) {

@@ -865,6 +865,8 @@ std::string type_to_sql(const dynamic::Type& _type) noexcept {
     } else if constexpr (std::is_same_v<T, dynamic::types::Timestamp> ||
                          std::is_same_v<T, dynamic::types::TimestampWithTZ>) {
       return "DATETIME";
+    } else if constexpr (std::is_same_v<T, dynamic::types::Dynamic>) {
+      return _t.type_name;
 
     } else if constexpr (std::is_same_v<T, dynamic::types::Unknown>) {
       return "TEXT";

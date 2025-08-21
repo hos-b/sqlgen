@@ -93,6 +93,11 @@ struct VarChar {
   Properties properties;
 };
 
+struct Dynamic {
+  std::string type_name;
+  Properties properties;
+};
+
 }  // namespace sqlgen::dynamic::types
 
 #endif

@@ -420,7 +420,8 @@ std::string insert_or_write_to_sql(const InsertOrWrite& _stmt) noexcept {
 
       stream << " DO UPDATE SET ";
       stream << internal::strings::join(
-          ", ", internal::collect::vector(_stmt.columns | transform(as_excluded)));
+          ", ",
+          internal::collect::vector(_stmt.columns | transform(as_excluded)));
     }
   }
 
@@ -762,6 +763,9 @@ std::string type_to_sql(const dynamic::Type& _type) noexcept {
                          std::is_same_v<T, dynamic::types::Timestamp> ||
                          std::is_same_v<T, dynamic::types::TimestampWithTZ>) {
       return "TEXT";
+
+    } else if constexpr (std::is_same_v<T, dynamic::types::JSON>) {
+      return "JSONB";
 
     } else if constexpr (std::is_same_v<T, dynamic::types::Dynamic>) {
       return _t.type_name;
